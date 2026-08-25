@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&amp;display=swap');
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f172a" />
+    </marker>
+  </defs>
+
+  <!-- Paper Background -->
+  <rect width="800" height="1100" fill="#fbfaf6" />
+
+  <!-- Notebook Margin Lines -->
+  <line x1="90" y1="0" x2="90" y2="1100" stroke="#fca5a5" stroke-width="1.8" />
+  <line x1="94" y1="0" x2="94" y2="1100" stroke="#fee2e2" stroke-width="1" />
+  <line x1="0" y1="50" x2="800" y2="50" stroke="#fca5a5" stroke-width="1.8" />
+
+  <!-- Ruled Blue Lines -->
+  <line x1="0" y1="70" x2="800" y2="70" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="102" x2="800" y2="102" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="134" x2="800" y2="134" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="166" x2="800" y2="166" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="198" x2="800" y2="198" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="230" x2="800" y2="230" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="262" x2="800" y2="262" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="294" x2="800" y2="294" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="326" x2="800" y2="326" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="358" x2="800" y2="358" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="390" x2="800" y2="390" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="422" x2="800" y2="422" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="454" x2="800" y2="454" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="486" x2="800" y2="486" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="518" x2="800" y2="518" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="550" x2="800" y2="550" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="582" x2="800" y2="582" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="614" x2="800" y2="614" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="646" x2="800" y2="646" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="678" x2="800" y2="678" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="710" x2="800" y2="710" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="742" x2="800" y2="742" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="774" x2="800" y2="774" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="806" x2="800" y2="806" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="838" x2="800" y2="838" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="870" x2="800" y2="870" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="902" x2="800" y2="902" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="934" x2="800" y2="934" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="966" x2="800" y2="966" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="998" x2="800" y2="998" stroke="#dbe4f0" stroke-width="1.2" />
+  <line x1="0" y1="1030" x2="800" y2="1030" stroke="#dbe4f0" stroke-width="1.2" />
+
+  <!-- Q1 Answer -->
+  <text x="35" y="98" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q1.</text>
+  <text x="110" y="98" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">Photosynthesis is the process used by green plants to</text>
+  <text x="110" y="130" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">convert light energy into chemical energy stored as glucose.</text>
+
+  <!-- Chemical Equation Box -->
+  <rect x="110" y="145" width="580" height="42" fill="#f8fafc" stroke="#334155" stroke-width="1.2" rx="4" />
+  <text x="130" y="174" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="22" font-weight="600" fill="#0f172a">
+    6CO₂ + 6H₂O  ──( Light / Chlorophyll )──&gt;  C₆H₁₂O₆ + 6O₂
+  </text>
+
+  <!-- Plant Sunlight Diagram -->
+  <g transform="translate(420, 200)">
+    <circle cx="180" cy="25" r="14" fill="none" stroke="#0f172a" stroke-width="1.5" />
+    <path d="M180,5 L180,0 M180,45 L180,50 M160,25 L155,25 M200,25 L205,25" stroke="#0f172a" stroke-width="1.5" />
+    <text x="200" y="28" font-family="'Caveat', cursive, sans-serif" font-size="18" fill="#0f172a">Sunlight</text>
+    <path d="M170,35 L120,60" stroke="#0f172a" stroke-width="1.2" marker-end="url(#arrow)" />
+
+    <path d="M90,50 Q90,95 90,110" fill="none" stroke="#0f172a" stroke-width="2" />
+    <path d="M90,50 C55,30 40,60 90,75" fill="none" stroke="#0f172a" stroke-width="1.8" />
+    <path d="M90,50 C125,30 140,60 90,75" fill="none" stroke="#0f172a" stroke-width="1.8" />
+
+    <path d="M0,65 L35,65" stroke="#0f172a" stroke-width="1.2" marker-end="url(#arrow)" />
+    <text x="-60" y="68" font-family="'Caveat', cursive, sans-serif" font-size="17" fill="#0f172a">CO₂ in</text>
+
+    <path d="M140,65 L175,65" stroke="#0f172a" stroke-width="1.2" marker-end="url(#arrow)" />
+    <text x="185" y="68" font-family="'Caveat', cursive, sans-serif" font-size="17" fill="#0f172a">O₂ out</text>
+  </g>
+
+  <!-- Q2 Answer -->
+  <text x="35" y="380" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q2.</text>
+  <text x="110" y="380" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">Photosynthesis occurs in the chloroplast of plant cells.</text>
+  <text x="110" y="412" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">1. Light Reaction: Traps light energy &amp; splits H₂O in thylakoids.</text>
+  <text x="110" y="444" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">2. Dark Reaction (Calvin Cycle): Fixes CO₂ into glucose in stroma.</text>
+
+  <!-- Q3 Answer -->
+  <text x="35" y="550" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q3.</text>
+  <text x="110" y="550" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">Chlorophyll pigment in the thylakoid membrane absorbs blue &amp; red</text>
+  <text x="110" y="582" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">light wavelengths. This drives electron transport to produce ATP</text>
+  <text x="110" y="614" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">and NADPH, which power the carbohydrate synthesis in stroma.</text>
+
+  <!-- Q4 Answer -->
+  <text x="35" y="720" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q4.</text>
+  <text x="110" y="720" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">Pathway of blood flow through the human heart:</text>
+  <text x="110" y="752" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">1. Deoxygenated blood from vena cava enters Right Atrium.</text>
+  <text x="110" y="784" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">2. Crosses Tricuspid valve into Right Ventricle.</text>
+  <text x="110" y="816" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">3. Pumped past Pulmonary valve into Pulmonary Artery to lungs.</text>
+  <text x="110" y="848" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">4. Oxygenated blood from pulmonary veins enters Left Atrium.</text>
+  <text x="110" y="880" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">5. Crosses Bicuspid (Mitral) valve into Left Ventricle.</text>
+  <text x="110" y="912" font-family="'Caveat', 'Segoe Print', cursive, sans-serif" font-size="23" fill="#1e293b">6. Pumped across Aortic valve into Aorta to systemic body circulation.</text>
+</svg>

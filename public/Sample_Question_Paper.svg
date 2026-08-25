@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap');
+    </style>
+  </defs>
+
+  <rect width="800" height="1000" fill="#ffffff" />
+
+  <!-- Outer border -->
+  <rect x="30" y="30" width="740" height="940" fill="none" stroke="#334155" stroke-width="1.5" />
+  <rect x="35" y="35" width="730" height="930" fill="none" stroke="#cbd5e1" stroke-width="1" />
+
+  <!-- School Header -->
+  <text x="400" y="80" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" text-anchor="middle" fill="#0f172a">
+    DELHI PUBLIC SCHOOL, BOKARO STEEL CITY
+  </text>
+  <text x="400" y="105" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="600" text-anchor="middle" fill="#475569">
+    PERIODIC ASSESSMENT – BIOLOGY &amp; LIFE PROCESSES
+  </text>
+  <text x="400" y="128" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" text-anchor="middle" fill="#64748b">
+    Class: X | Subject: Science (Biology) | Max Marks: 20
+  </text>
+
+  <line x1="50" y1="145" x2="750" y2="145" stroke="#94a3b8" stroke-width="1.2" />
+
+  <!-- General Instructions -->
+  <text x="55" y="170" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#334155">General Instructions:</text>
+  <text x="55" y="188" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" fill="#475569">1. Attempt all questions. Marks are indicated against each question.</text>
+  <text x="55" y="204" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" fill="#475569">2. Write clear handwritten answers and draw neat diagrams wherever required.</text>
+
+  <line x1="50" y1="220" x2="750" y2="220" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,4" />
+
+  <!-- Q1 -->
+  <text x="55" y="265" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q1.</text>
+  <text x="90" y="265" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">Define photosynthesis, write the balanced chemical equation, and illustrate</text>
+  <text x="90" y="285" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">with a labelled diagram showing gas exchange.</text>
+  <text x="735" y="265" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q2 -->
+  <text x="55" y="375" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q2.</text>
+  <text x="90" y="375" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">Name the organelle primarily involved in photosynthesis and explain</text>
+  <text x="90" y="395" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">its two main stages (Light reaction and Dark reaction).</text>
+  <text x="735" y="375" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q3 -->
+  <text x="55" y="490" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q3.</text>
+  <text x="90" y="490" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">Explain the role of chlorophyll pigments and thylakoid membranes in generating</text>
+  <text x="90" y="510" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">energy carriers (ATP &amp; NADPH) for the Calvin Cycle.</text>
+  <text x="735" y="490" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q4 -->
+  <text x="55" y="615" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q4.</text>
+  <text x="90" y="615" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">Describe the pathway of blood flow through the four chambers of the human heart,</text>
+  <text x="90" y="635" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" fill="#1e293b">specifying the valves crossed from the right atrium to the aorta.</text>
+  <text x="735" y="615" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Footer note -->
+  <line x1="50" y1="910" x2="750" y2="910" stroke="#cbd5e1" stroke-width="1" />
+  <text x="400" y="935" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle" fill="#94a3b8">
+    --- End of Question Paper (Total 4 Questions) ---
+  </text>
+</svg>
