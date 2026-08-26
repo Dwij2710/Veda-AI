@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap');
+    </style>
+  </defs>
+
+  <rect width="800" height="1000" fill="#ffffff" />
+
+  <!-- Outer Border -->
+  <rect x="30" y="30" width="740" height="940" fill="none" stroke="#334155" stroke-width="1.5" />
+  <rect x="35" y="35" width="730" height="930" fill="none" stroke="#cbd5e1" stroke-width="1" />
+
+  <!-- Header -->
+  <text x="400" y="75" font-family="'Plus Jakarta Sans', sans-serif" font-size="19" font-weight="800" text-anchor="middle" fill="#0f172a">
+    DELHI PUBLIC SCHOOL, BOKARO STEEL CITY
+  </text>
+  <text x="400" y="98" font-family="'Plus Jakarta Sans', sans-serif" font-size="13.5" font-weight="600" text-anchor="middle" fill="#475569">
+    UNIT TEST – SCIENCE (PHYSICAL &amp; CHEMICAL SCIENCES)
+  </text>
+  <text x="400" y="118" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" text-anchor="middle" fill="#64748b">
+    Class: X | Total Questions: 5 | Max Marks: 25 | Time: 1 Hour
+  </text>
+
+  <line x1="50" y1="134" x2="750" y2="134" stroke="#94a3b8" stroke-width="1.2" />
+
+  <!-- Instructions -->
+  <text x="55" y="155" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#334155">General Instructions:</text>
+  <text x="55" y="172" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" fill="#475569">1. All 5 questions carry equal marks (5 marks each). Total = 25 Marks.</text>
+  <text x="55" y="188" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" fill="#475569">2. Write precise scientific definitions and show mathematical formulas where required.</text>
+
+  <line x1="50" y1="202" x2="750" y2="202" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,4" />
+
+  <!-- Q1 -->
+  <text x="55" y="240" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q1.</text>
+  <text x="90" y="240" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">What is the pH value of a neutral aqueous solution at 25°C, and what color change</text>
+  <text x="90" y="258" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">is observed when blue litmus paper is dipped into dilute hydrochloric acid (HCl)?</text>
+  <text x="735" y="240" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q2 -->
+  <text x="55" y="340" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q2.</text>
+  <text x="90" y="340" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">Define an exothermic chemical reaction and provide one balanced chemical equation</text>
+  <text x="90" y="358" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">representing a common exothermic reaction.</text>
+  <text x="735" y="340" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q3 -->
+  <text x="55" y="460" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q3.</text>
+  <text x="90" y="460" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">Name the only metal that exists as a liquid at room temperature (25°C), and name</text>
+  <text x="90" y="478" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">the only non-metal that exists as a liquid at room temperature.</text>
+  <text x="735" y="460" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q4 -->
+  <text x="55" y="580" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q4.</text>
+  <text x="90" y="580" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">State Ohm's Law and write its mathematical formula relating Voltage (V), Current (I),</text>
+  <text x="90" y="598" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">and Resistance (R). If resistance is doubled at constant voltage, what happens to current?</text>
+  <text x="735" y="580" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Q5 -->
+  <text x="55" y="700" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#0f172a">Q5.</text>
+  <text x="90" y="700" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">State Snell's Law of refraction of light and write the formula for the refractive</text>
+  <text x="90" y="718" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#1e293b">index (n) of a medium in terms of the speed of light in vacuum (c) and in the medium (v).</text>
+  <text x="735" y="700" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" text-anchor="end" fill="#64748b">[5 Marks]</text>
+
+  <!-- Footer -->
+  <line x1="50" y1="910" x2="750" y2="910" stroke="#cbd5e1" stroke-width="1" />
+  <text x="400" y="935" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle" fill="#94a3b8">
+    --- End of Question Paper (Total 5 Questions) ---
+  </text>
+</svg>
