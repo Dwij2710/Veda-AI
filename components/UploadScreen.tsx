@@ -157,7 +157,7 @@ function UploadCard({
           <div className="min-w-0 flex-1 pr-6">
             <p className="truncate text-xs font-bold text-gray-900">{state.file.name}</p>
             <p className="text-[11px] font-medium text-gray-400 mt-0.5">
-              {(state.file.size / (1024 * 1024)).toFixed(1)}MB
+              {formatFileSize(state.file.size)}
               {state.pageCount ? ` • ${state.pageCount} Page${state.pageCount > 1 ? 's' : ''}` : ''}
             </p>
           </div>
@@ -208,4 +208,17 @@ function UploadCard({
       <p className="text-[11px] font-medium text-gray-400">Max 10MB</p>
     </button>
   );
+}
+
+function formatFileSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return '0.0MB';
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 0.1) {
+    return `${mb.toFixed(1)}MB`;
+  }
+  const kb = bytes / 1024;
+  if (kb >= 1) {
+    return `${kb.toFixed(1)}KB`;
+  }
+  return `${bytes}B`;
 }
