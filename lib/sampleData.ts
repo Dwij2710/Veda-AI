@@ -542,3 +542,216 @@ export const SAMPLE_ANSWER_PAGES: PageImage[] = [
   { pageIndex: 2, width: 800, height: 1100, dataUrl: generateNotebookPageSvg(3) },
   { pageIndex: 3, width: 800, height: 1100, dataUrl: generateNotebookPageSvg(4) }
 ];
+
+// ==========================================
+// 5-Question Physics & Chemistry Exam (2 Correct, 2 Incorrect, 1 Unanswered)
+// ==========================================
+export const SAMPLE_PHYSICS_QUESTIONS: ExtractedQuestion[] = [
+  {
+    id: 'q-phy-1',
+    number: '1',
+    text: 'What is the pH value of a neutral aqueous solution at 25°C, and what color change is observed when blue litmus paper is dipped into dilute hydrochloric acid (HCl)?',
+    marks: 5,
+    maxMarks: 5,
+    pageIndex: 0
+  },
+  {
+    id: 'q-phy-2',
+    number: '2',
+    text: 'Define an exothermic chemical reaction and provide one balanced chemical equation representing a common exothermic reaction.',
+    marks: 5,
+    maxMarks: 5,
+    pageIndex: 0
+  },
+  {
+    id: 'q-phy-3',
+    number: '3',
+    text: 'Name the only metal that exists as a liquid at room temperature (25°C), and name the only non-metal that exists as a liquid at room temperature.',
+    marks: 5,
+    maxMarks: 5,
+    pageIndex: 0
+  },
+  {
+    id: 'q-phy-4',
+    number: '4',
+    text: "State Ohm's Law and write its mathematical formula relating Voltage (V), Current (I), and Resistance (R). If resistance is doubled at constant voltage, what happens to current?",
+    marks: 5,
+    maxMarks: 5,
+    pageIndex: 0
+  },
+  {
+    id: 'q-phy-5',
+    number: '5',
+    text: "State Snell's Law of refraction of light and write the formula for the refractive index (n) of a medium in terms of the speed of light in vacuum (c) and in the medium (v).",
+    marks: 5,
+    maxMarks: 5,
+    pageIndex: 0
+  }
+];
+
+export const SAMPLE_PHYSICS_ANSWERS: AnswerBlock[] = [
+  {
+    id: 'ans-phy-1',
+    rawLabel: 'Q1.',
+    text: 'The pH value of a neutral aqueous solution at 25°C is exactly 7. When blue litmus paper is dipped into dilute hydrochloric acid (HCl), the litmus paper turns red due to the acidic hydrogen ions (H+).',
+    pageIndex: 0,
+    bbox: { x: 4, y: 7, width: 92, height: 12 }
+  },
+  {
+    id: 'ans-phy-2',
+    rawLabel: 'Q2.',
+    text: 'An exothermic reaction is a chemical change that releases energy to its surroundings, typically as heat and light. Equation: CH4 + 2O2 -> CO2 + 2H2O + Heat Energy (Combustion of Methane).',
+    pageIndex: 0,
+    bbox: { x: 4, y: 23, width: 92, height: 13 }
+  },
+  {
+    id: 'ans-phy-3',
+    rawLabel: 'Q3.',
+    text: 'Gallium is the only metal that exists as a liquid at room temperature. Chlorine gas is the only non-metal that stays in liquid form at room temperature and pressure.',
+    pageIndex: 0,
+    bbox: { x: 4, y: 40, width: 92, height: 12 }
+  },
+  {
+    id: 'ans-phy-4',
+    rawLabel: 'Q4.',
+    text: "According to Ohm's Law, Voltage equals Current divided by Resistance (V = I / R). Therefore, when resistance is doubled at constant potential difference, the current also doubles.",
+    pageIndex: 0,
+    bbox: { x: 4, y: 56, width: 92, height: 12 }
+  }
+];
+
+export const SAMPLE_PHYSICS_MAPPING: MappingResult = {
+  mappings: [
+    {
+      questionId: 'q-phy-1',
+      answerBlockIds: ['ans-phy-1'],
+      confidence: 0.99,
+      reason: 'Matched by handwritten label Q1 and pH 7 / litmus acidic color change'
+    },
+    {
+      questionId: 'q-phy-2',
+      answerBlockIds: ['ans-phy-2'],
+      confidence: 0.98,
+      reason: 'Matched by handwritten label Q2 and methane combustion equation'
+    },
+    {
+      questionId: 'q-phy-3',
+      answerBlockIds: ['ans-phy-3'],
+      confidence: 0.97,
+      reason: 'Matched by handwritten label Q3 and liquid metal / non-metal response'
+    },
+    {
+      questionId: 'q-phy-4',
+      answerBlockIds: ['ans-phy-4'],
+      confidence: 0.98,
+      reason: "Matched by handwritten label Q4 and Ohm's Law formula"
+    }
+  ],
+  unansweredQuestionIds: ['q-phy-5'],
+  unmatchedAnswerBlockIds: []
+};
+
+export const SAMPLE_PHYSICS_GRADING: GradingResult = {
+  perQuestion: [
+    {
+      questionId: 'q-phy-1',
+      verdict: 'correct',
+      score: 5,
+      maxScore: 5,
+      feedback: 'Excellent work! Correctly identified pH 7 for neutral solutions and red color transition for blue litmus in acid.'
+    },
+    {
+      questionId: 'q-phy-2',
+      verdict: 'correct',
+      score: 5,
+      maxScore: 5,
+      feedback: 'Great answer with a clear thermodynamic definition and a correct balanced methane combustion equation.'
+    },
+    {
+      questionId: 'q-phy-3',
+      verdict: 'incorrect',
+      score: 0,
+      maxScore: 5,
+      feedback: 'Incorrect elements. Mercury (Hg) is the liquid metal and Bromine (Br₂) is the liquid non-metal at 25°C.'
+    },
+    {
+      questionId: 'q-phy-4',
+      verdict: 'incorrect',
+      score: 0,
+      maxScore: 5,
+      feedback: "Incorrect formula and conclusion. Ohm's Law is V = I × R; doubling resistance halves the current (I = V / R)."
+    },
+    {
+      questionId: 'q-phy-5',
+      verdict: 'unanswered',
+      score: 0,
+      maxScore: 5,
+      feedback: 'Question not attempted by student.'
+    }
+  ],
+  overallFeedback:
+    'Demonstrates good understanding of basic chemistry (pH and exothermic reactions), but needs conceptual revision on periodic table physical states and electric circuit formulas.',
+  totalScore: 10,
+  totalMaxScore: 25
+};
+
+function generatePhysicsNotebookPageSvg(): string {
+  const width = 800;
+  const height = 1100;
+  const leftMargin = 90;
+
+  let linesSvg = '';
+  for (let y = 70; y <= 980; y += 32) {
+    linesSvg += `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#dbe4f0" stroke-width="1.2" />\n`;
+  }
+
+  const contentSvg = `
+    <!-- Q1 (CORRECT) -->
+    <text x="35" y="98" font-family="'Caveat', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q1.</text>
+    <text x="110" y="98" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">The pH value of a neutral aqueous solution at 25°C is exactly 7.</text>
+    <text x="110" y="130" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">When blue litmus paper is dipped into dilute hydrochloric acid (HCl),</text>
+    <text x="110" y="162" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">the litmus paper turns red due to the acidic hydrogen ions (H⁺).</text>
+
+    <!-- Q2 (CORRECT) -->
+    <text x="35" y="270" font-family="'Caveat', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q2.</text>
+    <text x="110" y="270" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">An exothermic reaction is a chemical change that releases energy</text>
+    <text x="110" y="302" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">to its surroundings, typically as heat and light.</text>
+    <rect x="110" y="318" width="580" height="42" fill="#f8fafc" stroke="#334155" stroke-width="1.2" rx="4" />
+    <text x="130" y="347" font-family="'Caveat', cursive, sans-serif" font-size="22" font-weight="600" fill="#0f172a">
+      CH₄ + 2O₂  ──&gt;  CO₂ + 2H₂O + Heat Energy  (Combustion of Methane)
+    </text>
+
+    <!-- Q3 (INCORRECT) -->
+    <text x="35" y="470" font-family="'Caveat', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q3.</text>
+    <text x="110" y="470" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">Gallium is the only metal that exists as a liquid at room temperature.</text>
+    <text x="110" y="502" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">Chlorine gas is the only non-metal that stays in liquid form at</text>
+    <text x="110" y="534" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">room temperature and pressure.</text>
+
+    <!-- Q4 (INCORRECT) -->
+    <text x="35" y="640" font-family="'Caveat', cursive, sans-serif" font-size="28" font-weight="700" fill="#1e3a8a">Q4.</text>
+    <text x="110" y="640" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">According to Ohm's Law, Voltage equals Current divided by</text>
+    <text x="110" y="672" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">Resistance (V = I / R). Therefore, when resistance is doubled</text>
+    <text x="110" y="704" font-family="'Caveat', cursive, sans-serif" font-size="23" fill="#1e293b">at constant potential difference, the current also doubles.</text>
+  `;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+    <defs>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&amp;display=swap');
+      </style>
+    </defs>
+    <rect width="${width}" height="${height}" fill="#fbfaf6" />
+    <line x1="${leftMargin}" y1="0" x2="${leftMargin}" y2="${height}" stroke="#fca5a5" stroke-width="1.8" />
+    <line x1="${leftMargin + 4}" y1="0" x2="${leftMargin + 4}" y2="${height}" stroke="#fee2e2" stroke-width="1" />
+    <line x1="0" y1="50" x2="${width}" y2="50" stroke="#fca5a5" stroke-width="1.8" />
+    ${linesSvg}
+    ${contentSvg}
+  </svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export const SAMPLE_PHYSICS_ANSWER_PAGES: PageImage[] = [
+  { pageIndex: 0, width: 800, height: 1100, dataUrl: generatePhysicsNotebookPageSvg() }
+];
+

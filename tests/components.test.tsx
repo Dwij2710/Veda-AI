@@ -79,7 +79,7 @@ describe('UI Components Unit Tests', () => {
         />
       );
 
-      const sampleButton = screen.getByText(/Load Biology Sample Exam/i);
+      const sampleButton = screen.getByText(/Biology Exam/i);
       fireEvent.click(sampleButton);
       expect(loadSampleMock).toHaveBeenCalledTimes(1);
     });
@@ -132,7 +132,7 @@ describe('UI Components Unit Tests', () => {
         />
       );
 
-      const unansweredTab = screen.getByRole('button', { name: 'Unanswered' });
+      const unansweredTab = screen.getByRole('button', { name: /Unanswered/i });
       fireEvent.click(unansweredTab);
 
       // Question 4 is unanswered

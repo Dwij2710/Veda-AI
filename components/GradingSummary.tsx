@@ -14,6 +14,50 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
   const [showFeedback, setShowFeedback] = useState(false);
   const answeredCount = questions.length - mapping.unansweredQuestionIds.length;
 
+  const handleExportReport = () => {
+    const reportData = {
+      evaluatedAt: new Date().toISOString(),
+      summary: {
+        totalQuestions: questions.length,
+        answeredCount,
+        unansweredCount: mapping.unansweredQuestionIds.length,
+        unmatchedBlocksCount: mapping.unmatchedAnswerBlockIds.length,
+        totalScore: grading?.totalScore ?? null,
+        totalMaxScore: grading?.totalMaxScore ?? null,
+        percentage:
+          grading?.totalScore != null && grading?.totalMaxScore
+            ? `${Math.round((grading.totalScore / grading.totalMaxScore) * 100)}%`
+            : null,
+        executiveSummary: grading?.overallFeedback ?? null
+      },
+      questions: questions.map((q) => {
+        const mapped = mapping.mappings.find((m) => m.questionId === q.id);
+        const graded = grading?.perQuestion.find((g) => g.questionId === q.id);
+        const isUnanswered = mapping.unansweredQuestionIds.includes(q.id);
+
+        return {
+          questionNumber: q.number,
+          questionText: q.text,
+          maxMarks: graded?.maxScore ?? q.maxMarks ?? q.marks ?? 5,
+          score: graded?.score ?? (isUnanswered ? 0 : null),
+          verdict: graded?.verdict ?? (isUnanswered ? 'unanswered' : 'evaluated'),
+          isAnswered: !isUnanswered,
+          mappingConfidence: mapped?.confidence ?? null,
+          mappingReason: mapped?.reason ?? null,
+          feedback: graded?.feedback ?? null
+        };
+      })
+    };
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `VedaAI_Assessment_Report_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="border-b border-gray-200/80 bg-white shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-2.5">
@@ -39,8 +83,8 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
           )}
         </div>
 
-        {/* Right Grading Total & Overall Feedback Toggle */}
-        <div className="flex items-center gap-3">
+        {/* Right Grading Total, Feedback Toggle & Export Button */}
+        <div className="flex items-center gap-2.5">
           {gradingLoading ? (
             <div className="flex items-center gap-1.5 text-xs text-orange-600 font-medium animate-pulse">
               <span>✦</span> Grading in background...
@@ -50,7 +94,7 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
               {grading.overallFeedback && (
                 <button
                   onClick={() => setShowFeedback((v) => !v)}
-                  className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition shadow-2xs"
+                  className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition shadow-2xs cursor-pointer"
                 >
                   {showFeedback ? '✕ Hide Summary' : '✦ View Overall Summary'}
                 </button>
@@ -66,6 +110,16 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
                   </span>
                 </div>
               )}
+
+              {/* Export Report Button */}
+              <button
+                onClick={handleExportReport}
+                className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-2xs cursor-pointer"
+                title="Download full evaluation report as JSON"
+              >
+                <span>📥</span>
+                <span>Export Report</span>
+              </button>
             </>
           ) : null}
         </div>

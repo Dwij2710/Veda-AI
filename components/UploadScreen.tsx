@@ -15,7 +15,7 @@ interface Props {
   onClearQuestionPaper: () => void;
   onClearAnswerSheet: () => void;
   onStartMapping: () => void;
-  onLoadSampleExam: () => void;
+  onLoadSampleExam: (type?: 'biology' | 'physics') => void;
   error?: string | null;
 }
 
@@ -113,15 +113,22 @@ export default function UploadScreen({
             Once both files are uploaded, you&apos;ll be able to map answers with questions
           </p>
 
-          {/* 1-Click Sample Exam Demo */}
-          <div className="mt-2 pt-3 border-t border-gray-200/60 flex items-center justify-center gap-2">
-            <span className="text-xs text-gray-400">Want to test instantly?</span>
+          {/* 1-Click Sample Exam Demo Buttons */}
+          <div className="mt-2 pt-3 border-t border-gray-200/60 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs text-gray-400 font-medium">1-Click Test Demos:</span>
             <button
-              onClick={onLoadSampleExam}
-              className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-4 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition shadow-2xs"
+              onClick={() => onLoadSampleExam('biology')}
+              className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3.5 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 transition shadow-2xs cursor-pointer"
             >
-              <span>✨</span>
-              <span>Load Biology Sample Exam</span>
+              <span>🌱</span>
+              <span>Biology Exam (14 Qs, Subparts)</span>
+            </button>
+            <button
+              onClick={() => onLoadSampleExam('physics')}
+              className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition shadow-2xs cursor-pointer"
+            >
+              <span>⚡</span>
+              <span>5-Q Physics & Chem Exam (2 Correct, 2 Wrong, 1 Unanswered)</span>
             </button>
           </div>
         </div>

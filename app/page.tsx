@@ -15,7 +15,12 @@ import {
   SAMPLE_ANSWERS,
   SAMPLE_MAPPING,
   SAMPLE_GRADING,
-  SAMPLE_ANSWER_PAGES
+  SAMPLE_ANSWER_PAGES,
+  SAMPLE_PHYSICS_QUESTIONS,
+  SAMPLE_PHYSICS_ANSWERS,
+  SAMPLE_PHYSICS_MAPPING,
+  SAMPLE_PHYSICS_GRADING,
+  SAMPLE_PHYSICS_ANSWER_PAGES
 } from '@/lib/sampleData';
 import type {
   AnswerBlock,
@@ -104,23 +109,33 @@ export default function Home() {
   };
 
   // 1-Click Sample Exam Loader
-  const handleLoadSampleExam = () => {
+  const handleLoadSampleExam = (type: 'biology' | 'physics' = 'biology') => {
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
-    setPipeline({ stage: 'rendering', progress: 20, message: 'Loading Sample Biology Exam...' });
+    const examLabel = type === 'physics' ? '5-Q Physics & Chem Exam' : 'Biology Unit Exam';
+    setPipeline({ stage: 'rendering', progress: 20, message: `Loading ${examLabel}...` });
 
     setTimeout(() => {
       setPipeline({ stage: 'extracting-questions', progress: 50, message: 'Extracting questions...' });
       setTimeout(() => {
         setPipeline({ stage: 'mapping', progress: 85, message: 'Mapping answers...' });
         setTimeout(() => {
-          setAnswerPages(SAMPLE_ANSWER_PAGES);
-          setQuestions(SAMPLE_QUESTIONS);
-          setAnswers(SAMPLE_ANSWERS);
-          setMapping(SAMPLE_MAPPING);
-          setGrading(SAMPLE_GRADING);
-          setSelectedQuestionId('q-2'); // Highlight Q2 chloroplast as in Figma mockup
+          if (type === 'physics') {
+            setAnswerPages(SAMPLE_PHYSICS_ANSWER_PAGES);
+            setQuestions(SAMPLE_PHYSICS_QUESTIONS);
+            setAnswers(SAMPLE_PHYSICS_ANSWERS);
+            setMapping(SAMPLE_PHYSICS_MAPPING);
+            setGrading(SAMPLE_PHYSICS_GRADING);
+            setSelectedQuestionId('q-phy-1');
+          } else {
+            setAnswerPages(SAMPLE_ANSWER_PAGES);
+            setQuestions(SAMPLE_QUESTIONS);
+            setAnswers(SAMPLE_ANSWERS);
+            setMapping(SAMPLE_MAPPING);
+            setGrading(SAMPLE_GRADING);
+            setSelectedQuestionId('q-2'); // Highlight Q2 chloroplast as in Figma mockup
+          }
           setPipeline({ stage: 'done', progress: 100 });
           setScreen('results');
         }, 300);
