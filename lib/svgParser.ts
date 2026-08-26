@@ -9,7 +9,7 @@ export function extractQuestionsFromSvg(svgContent: string): ExtractedQuestion[]
   const textElements = Array.from(doc.querySelectorAll('text'));
 
   const questions: ExtractedQuestion[] = [];
-  let currentQ: { number: number; textParts: string[]; marks: number; y: number } | null = null;
+  let currentQ: { number: string; textParts: string[]; marks: number; y: number } | null = null;
 
   textElements.forEach((el) => {
     const text = el.textContent?.trim() || '';
@@ -20,17 +20,17 @@ export function extractQuestionsFromSvg(svgContent: string): ExtractedQuestion[]
       if (currentQ) {
         questions.push({
           id: `q-${currentQ.number}`,
-          number: currentQ.number,
+          number: String(currentQ.number),
           text: currentQ.textParts.join(' ').trim(),
           marks: currentQ.marks,
           maxMarks: currentQ.marks,
           pageIndex: 0
         });
       }
-      const num = parseInt(qMatch[1], 10);
+      const numStr = qMatch[1];
       const remainingText = text.replace(/^Q\d+\.?\s*/i, '').replace(/\[\d+\s*Marks\]/i, '').trim();
       currentQ = {
-        number: num,
+        number: numStr,
         textParts: remainingText ? [remainingText] : [],
         marks: 5,
         y
@@ -39,7 +39,7 @@ export function extractQuestionsFromSvg(svgContent: string): ExtractedQuestion[]
       if (text.startsWith('SECTION') || text.includes('End of Question') || text.includes('Instructions')) {
         questions.push({
           id: `q-${currentQ.number}`,
-          number: currentQ.number,
+          number: String(currentQ.number),
           text: currentQ.textParts.join(' ').trim(),
           marks: currentQ.marks,
           maxMarks: currentQ.marks,
@@ -56,7 +56,7 @@ export function extractQuestionsFromSvg(svgContent: string): ExtractedQuestion[]
   if (currentQ) {
     questions.push({
       id: `q-${currentQ.number}`,
-      number: currentQ.number,
+      number: String(currentQ.number),
       text: currentQ.textParts.join(' ').trim(),
       marks: currentQ.marks,
       maxMarks: currentQ.marks,
