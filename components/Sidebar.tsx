@@ -2,7 +2,9 @@
 
 interface Props {
   collapsed?: boolean;
+  mobileOpen?: boolean;
   onToggleCollapse?: () => void;
+  onCloseMobile?: () => void;
   onOpenSettings?: () => void;
 }
 
@@ -57,74 +59,15 @@ const NAV_ITEMS = [
   }
 ];
 
-export default function Sidebar({ collapsed = false, onToggleCollapse, onOpenSettings }: Props) {
-  if (collapsed) {
-    return (
-      <aside className="hidden md:flex w-[72px] shrink-0 flex-col items-center justify-between border-r border-gray-200/80 bg-white py-5 px-2 transition-all">
-        <div className="flex flex-col items-center gap-6">
-          {/* VedaAI Logo Icon */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-900 text-white font-bold text-lg shadow-sm">
-            V
-          </div>
-
-          {/* Sparkle Toolkit Icon */}
-          <button
-            title="AI Teacher's Toolkit"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-orange-400 ring-2 ring-orange-500/80 shadow-sm transition hover:scale-105"
-          >
-            <span className="text-sm">✦</span>
-          </button>
-
-          {/* Nav Icons */}
-          <nav className="flex flex-col items-center gap-3">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.label}
-                title={item.label}
-                className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
-                  item.active
-                    ? 'bg-gray-100 text-gray-900 shadow-2xs font-semibold'
-                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
-                }`}
-              >
-                {item.icon}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Bottom Area */}
-        <div className="flex flex-col items-center gap-3">
-          <button
-            onClick={onOpenSettings}
-            title="Settings"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
-          >
-            ⚙️
-          </button>
-
-          {/* School Crest Thumbnail */}
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100 text-sm" title="Delhi Public School">
-            🏫
-          </div>
-
-          {/* Expand Button */}
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              title="Expand sidebar"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-xs text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
-            >
-              »
-            </button>
-          )}
-        </div>
-      </aside>
-    );
-  }
-
-  return (
-    <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-gray-200/80 bg-white px-4 py-5 transition-all">
+export default function Sidebar({
+  collapsed = false,
+  mobileOpen = false,
+  onToggleCollapse,
+  onCloseMobile,
+  onOpenSettings
+}: Props) {
+  const sidebarContent = (
+    <div className="flex h-full w-full flex-col justify-between p-4">
       <div>
         {/* Header Logo */}
         <div className="flex items-center justify-between px-1 pb-5">
@@ -138,7 +81,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapse, onOpenSet
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+              className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer"
               title="Collapse sidebar"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -147,10 +90,20 @@ export default function Sidebar({ collapsed = false, onToggleCollapse, onOpenSet
               </svg>
             </button>
           )}
+
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="flex md:hidden h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer"
+              title="Close menu"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {/* AI Teacher's Toolkit Pill Button */}
-        <button className="mb-6 w-full rounded-full bg-gray-900 border-2 border-orange-500/90 px-4 py-2.5 text-xs font-semibold text-white shadow-sm flex items-center justify-center gap-2 transition hover:bg-gray-800">
+        <button className="mb-6 w-full rounded-full bg-gray-900 border-2 border-orange-500/90 px-4 py-2.5 text-xs font-semibold text-white shadow-sm flex items-center justify-center gap-2 transition hover:bg-gray-800 cursor-pointer">
           <span className="text-orange-400">✦</span> AI Teacher&apos;s Toolkit
         </button>
 
@@ -176,7 +129,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapse, onOpenSet
       <div className="space-y-3">
         <button
           onClick={onOpenSettings}
-          className="flex w-full items-center gap-2.5 rounded-xl border border-gray-200/70 bg-gray-50/70 px-3.5 py-2 text-xs text-gray-600 hover:bg-gray-100 transition"
+          className="flex w-full items-center gap-2.5 rounded-xl border border-gray-200/70 bg-gray-50/70 px-3.5 py-2 text-xs text-gray-600 hover:bg-gray-100 transition cursor-pointer"
         >
           <span className="text-sm">⚙️</span>
           <span className="font-medium">Settings &amp; Groq API</span>
@@ -192,6 +145,91 @@ export default function Sidebar({ collapsed = false, onToggleCollapse, onOpenSet
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Drawer Overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            onClick={onCloseMobile}
+          />
+          <aside className="relative z-10 w-72 max-w-[80vw] bg-white shadow-2xl animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      {collapsed ? (
+        <aside className="hidden md:flex w-[72px] shrink-0 flex-col items-center justify-between border-r border-gray-200/80 bg-white py-5 px-2 transition-all">
+          <div className="flex flex-col items-center gap-6">
+            {/* VedaAI Logo Icon */}
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-900 text-white font-bold text-lg shadow-sm">
+              V
+            </div>
+
+            {/* Sparkle Toolkit Icon */}
+            <button
+              title="AI Teacher's Toolkit"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-orange-400 ring-2 ring-orange-500/80 shadow-sm transition hover:scale-105"
+            >
+              <span className="text-sm">✦</span>
+            </button>
+
+            {/* Nav Icons */}
+            <nav className="flex flex-col items-center gap-3">
+              {NAV_ITEMS.map((item) => (
+                <button
+                  key={item.label}
+                  title={item.label}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                    item.active
+                      ? 'bg-gray-100 text-gray-900 shadow-2xs font-semibold'
+                      : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
+                  }`}
+                >
+                  {item.icon}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Bottom Area */}
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={onOpenSettings}
+              title="Settings"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
+            >
+              ⚙️
+            </button>
+
+            {/* School Crest Thumbnail */}
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100 text-sm" title="Delhi Public School">
+              🏫
+            </div>
+
+            {/* Expand Button */}
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                title="Expand sidebar"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-xs text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer"
+              >
+                »
+              </button>
+            )}
+          </div>
+        </aside>
+      ) : (
+        <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-gray-200/80 bg-white transition-all">
+          {sidebarContent}
+        </aside>
+      )}
+    </>
   );
 }

@@ -61,6 +61,8 @@ async function postJson<T>(url: string, body: unknown, apiKey?: string): Promise
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('upload');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'questions' | 'answers'>('questions');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
@@ -80,7 +82,7 @@ export default function Home() {
   const [gradingLoading, setGradingLoading] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
 
-  // Load saved settings on initial mount
+  // Load saved settings on mount & clean up deprecated models
   useEffect(() => {
     try {
       const saved = localStorage.getItem('veda_app_settings');
@@ -113,6 +115,7 @@ export default function Home() {
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
+    setMobileTab('questions');
     const examLabel = type === 'physics' ? '5-Q Physics & Chem Exam' : 'Biology Unit Exam';
     setPipeline({ stage: 'rendering', progress: 20, message: `Loading ${examLabel}...` });
 
@@ -148,6 +151,7 @@ export default function Home() {
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
+    setMobileTab('questions');
     setPipeline({
       stage: 'extracting-questions',
       progress: 25,
@@ -193,6 +197,7 @@ export default function Home() {
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
+    setMobileTab('questions');
 
     try {
       setPipeline({ stage: 'rendering', progress: 8, message: 'Rasterizing PDF & image pages...' });
@@ -217,7 +222,7 @@ export default function Home() {
       setPipeline({
         stage: 'extracting-answers',
         progress: 60,
-        message: 'Segmenting student handwritten answers & bounding boxes...'
+        message: 'Extracting student answers & bounding boxes...'
       });
       const { answers: extractedAnswers } = await postJson<{ answers: AnswerBlock[] }>(
         '/api/extract-answers',
@@ -229,44 +234,39 @@ export default function Home() {
       setPipeline({
         stage: 'mapping',
         progress: 85,
-        message: 'Mapping student answers to questions...'
+        message: 'Semantically mapping answers to questions...'
       });
       const mappingResult = await postJson<MappingResult>(
         '/api/map-answers',
-        {
-          questions: extractedQuestions,
-          answers: extractedAnswers
-        },
+        { questions: extractedQuestions, answers: extractedAnswers },
         settings.groqApiKey
       );
       setMapping(mappingResult);
 
-      setPipeline({ stage: 'done', progress: 100, message: 'Complete!' });
-      setSelectedQuestionId(extractedQuestions[0]?.id ?? null);
+      if (extractedQuestions.length > 0) {
+        setSelectedQuestionId(extractedQuestions[0].id);
+      }
+
+      setPipeline({ stage: 'done', progress: 100 });
       setScreen('results');
 
-      // Run grading in background
+      // Asynchronous background grading
       setGradingLoading(true);
-      try {
-        const gradingResult = await postJson<GradingResult>(
-          '/api/grade',
-          {
-            questions: extractedQuestions,
-            answers: extractedAnswers,
-            mapping: mappingResult
-          },
-          settings.groqApiKey
-        );
-        setGrading(gradingResult);
-      } catch (gradeErr) {
-        console.error('Grading background error:', gradeErr);
-      } finally {
-        setGradingLoading(false);
-      }
+      postJson<GradingResult>(
+        '/api/grade',
+        {
+          questions: extractedQuestions,
+          answers: extractedAnswers,
+          mapping: mappingResult
+        },
+        settings.groqApiKey
+      )
+        .then((g) => setGrading(g))
+        .catch((e) => console.warn('Background grading notice:', e.message))
+        .finally(() => setGradingLoading(false));
     } catch (err: any) {
-      console.error('Pipeline error:', err);
-      setPipeline({ stage: 'error', progress: 0, message: err.message });
-      setUploadError(err.message || 'Something went wrong while processing your files.');
+      console.error('Pipeline failed:', err);
+      setUploadError(err.message || 'Pipeline processing failed. Please verify your Groq API key.');
       setScreen('upload');
       setSidebarCollapsed(false);
     }
@@ -274,24 +274,23 @@ export default function Home() {
 
   function resetAll() {
     setScreen('upload');
-    setSidebarCollapsed(false);
     setQuestionPaperFile(null);
     setAnswerSheetFile(null);
     setQuestionPaperPages(null);
     setAnswerSheetPageCount(null);
-    setAnswerPages([]);
     setQuestions([]);
     setAnswers([]);
     setMapping(null);
     setGrading(null);
     setSelectedQuestionId(null);
     setUploadError(null);
-    setPipeline({ stage: 'idle', progress: 0 });
+    setSidebarCollapsed(false);
+    setMobileTab('questions');
   }
 
   async function countPages(file: File, setter: (n: number) => void) {
     try {
-      const pages = await fileToPageImages(file);
+      const pages = await fileToPageImages(file, { enhanceContrast: false });
       setter(pages.length);
     } catch {
       // Non-fatal cosmetic page count
@@ -300,18 +299,24 @@ export default function Home() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#f8f9fb] font-sans antialiased text-gray-900">
-      {/* Collapsible Sidebar */}
+      {/* Sidebar with Mobile Drawer and Desktop Support */}
       <Sidebar
         collapsed={screen !== 'upload' || sidebarCollapsed}
+        mobileOpen={isMobileMenuOpen}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
+        onOpenSettings={() => {
+          setIsMobileMenuOpen(false);
+          setIsSettingsOpen(true);
+        }}
       />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        {/* TopBar */}
+        {/* TopBar with Mobile Hamburger & Notification Support */}
         <TopBar
           onBack={screen !== 'upload' ? resetAll : undefined}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
         />
 
         {/* Upload Screen */}
@@ -347,9 +352,10 @@ export default function Home() {
         {/* Loading Screen */}
         {screen === 'processing' && <LoadingState state={pipeline} />}
 
-        {/* Side-by-side Results Screen */}
+        {/* Mapping Screen (Responsive Desktop Side-by-Side & Mobile Segmented Tabs) */}
         {screen === 'results' && mapping && (
           <div className="flex flex-1 flex-col overflow-hidden">
+            {/* Top Grading & Summary Bar */}
             <GradingSummary
               questions={questions}
               mapping={mapping}
@@ -357,23 +363,71 @@ export default function Home() {
               gradingLoading={gradingLoading}
             />
 
-            <div className="flex min-h-0 flex-1 overflow-hidden">
-              <QuestionList
-                questions={questions}
-                mapping={mapping}
-                grading={grading}
-                selectedQuestionId={selectedQuestionId}
-                onSelect={setSelectedQuestionId}
-              />
-              <AnswerSheetViewer
-                pages={answerPages}
-                answers={answers}
-                mapping={mapping}
-                grading={grading}
-                questions={questions}
-                selectedQuestion={questions.find((q) => q.id === selectedQuestionId) ?? null}
-                onSelectQuestion={setSelectedQuestionId}
-              />
+            {/* Mobile Segmented Tab Switcher (Visible only on mobile screens < md) */}
+            <div className="md:hidden flex items-center justify-center px-4 py-2 bg-white border-b border-gray-200">
+              <div className="flex w-full max-w-xs rounded-full bg-gray-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setMobileTab('questions')}
+                  className={`flex-1 rounded-full py-1.5 text-xs font-bold transition cursor-pointer ${
+                    mobileTab === 'questions'
+                      ? 'bg-[#2d2d2d] text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Questions
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileTab('answers')}
+                  className={`flex-1 rounded-full py-1.5 text-xs font-bold transition cursor-pointer ${
+                    mobileTab === 'answers'
+                      ? 'bg-[#2d2d2d] text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Answer Sheet
+                </button>
+              </div>
+            </div>
+
+            {/* Main Content: Side-by-Side on Desktop, Tabbed on Mobile */}
+            <div className="flex min-h-0 flex-1 overflow-hidden flex-col md:flex-row">
+              {/* Questions Panel */}
+              <div
+                className={`${
+                  mobileTab === 'questions' ? 'flex' : 'hidden'
+                } md:flex flex-1 md:flex-initial md:w-[480px] min-h-0 overflow-hidden`}
+              >
+                <QuestionList
+                  questions={questions}
+                  mapping={mapping}
+                  grading={grading}
+                  selectedQuestionId={selectedQuestionId}
+                  onSelect={(id) => {
+                    setSelectedQuestionId(id);
+                  }}
+                />
+              </div>
+
+              {/* Answer Sheet Viewer Panel */}
+              <div
+                className={`${
+                  mobileTab === 'answers' ? 'flex' : 'hidden'
+                } md:flex flex-1 min-h-0 overflow-hidden`}
+              >
+                <AnswerSheetViewer
+                  pages={answerPages}
+                  answers={answers}
+                  mapping={mapping}
+                  grading={grading}
+                  questions={questions}
+                  selectedQuestion={questions.find((q) => q.id === selectedQuestionId) ?? null}
+                  onSelectQuestion={(id) => {
+                    setSelectedQuestionId(id);
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}
