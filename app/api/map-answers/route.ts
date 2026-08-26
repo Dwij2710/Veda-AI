@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       pageIndex: a.pageIndex
     }));
 
-    const completion = await callGroqWithRetry(() =>
+    const completion: any = await callGroqWithRetry<any>(() =>
       (groq.chat.completions.create as any)({
         model: GROQ_DEFAULT_TEXT_MODEL,
         messages: [
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    const rawResponse = completion.choices[0]?.message?.content || '';
+    const rawResponse = completion?.choices?.[0]?.message?.content || '';
     const parsed = extractJson<MappingResult>(rawResponse);
 
     // Normalize and ensure all IDs are accounted for

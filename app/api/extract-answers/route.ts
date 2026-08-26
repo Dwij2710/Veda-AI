@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       text: 'Segment all student handwritten answers on these pages and provide their bounding boxes and text. Return only JSON.'
     });
 
-    const completion = await callGroqWithRetry(() =>
+    const completion: any = await callGroqWithRetry<any>(() =>
       (groq.chat.completions.create as any)({
         model: GROQ_DEFAULT_VISION_MODEL,
         messages: [
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    const rawResponse = completion.choices[0]?.message?.content || '';
+    const rawResponse = completion?.choices?.[0]?.message?.content || '';
     const parsed = extractJson<{
       answers: {
         rawLabel: string | null;

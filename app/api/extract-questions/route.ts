@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       text: 'Extract all questions from the question paper following the rules and return only the JSON object.'
     });
 
-    const completion = await callGroqWithRetry(() =>
+    const completion: any = await callGroqWithRetry<any>(() =>
       (groq.chat.completions.create as any)({
         model: GROQ_DEFAULT_VISION_MODEL,
         messages: [
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    const rawResponse = completion.choices[0]?.message?.content || '';
+    const rawResponse = completion?.choices?.[0]?.message?.content || '';
     const parsed = extractJson<{
       questions: { number: string; text: string; marks: number | null; pageIndex: number }[];
     }>(rawResponse);
