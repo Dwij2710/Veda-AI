@@ -9,6 +9,7 @@ interface Props {
   grading: GradingResult | null;
   selectedQuestionId: string | null;
   onSelect: (id: string) => void;
+  onUpdateGrading?: (questionId: string, newScore: number, newFeedback: string) => void;
 }
 
 export default function QuestionList({
@@ -16,13 +17,19 @@ export default function QuestionList({
   mapping,
   grading,
   selectedQuestionId,
-  onSelect
+  onSelect,
+  onUpdateGrading
 }: Props) {
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({
     [selectedQuestionId || questions[0]?.id || '']: true
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'correct' | 'incorrect' | 'unanswered'>('all');
+
+  // Inline editing state for human-in-the-loop overrides
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editScore, setEditScore] = useState<number>(0);
+  const [editFeedback, setEditFeedback] = useState<string>('');
 
   const isAllExpanded = questions.length > 0 && questions.every((q) => expandedIds[q.id]);
 
@@ -44,6 +51,21 @@ export default function QuestionList({
       ...prev,
       [id]: !prev[id]
     }));
+  };
+
+  const startEditing = (qId: string, currentScore: number, currentFeedback: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingQuestionId(qId);
+    setEditScore(currentScore);
+    setEditFeedback(currentFeedback);
+  };
+
+  const saveEditing = (qId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onUpdateGrading) {
+      onUpdateGrading(qId, editScore, editFeedback);
+    }
+    setEditingQuestionId(null);
   };
 
   // Counts for filter pills
@@ -175,7 +197,6 @@ export default function QuestionList({
             const mappedItem = mapping.mappings.find((m) => m.questionId === q.id);
             const graded = grading?.perQuestion.find((g) => g.questionId === q.id);
 
-            // Format score badge
             const maxMarks = graded?.maxScore ?? q.maxMarks ?? q.marks ?? 5;
             const score = graded?.score ?? (isUnanswered ? 0 : null);
             const verdict = graded?.verdict ?? (isUnanswered ? 'unanswered' : null);
@@ -188,6 +209,8 @@ export default function QuestionList({
             } else if (verdict === 'partially_correct' || (score !== null && score > 0)) {
               scoreBadgeColor = 'bg-amber-50 text-amber-700 font-bold border border-amber-200/60';
             }
+
+            const isEditing = editingQuestionId === q.id;
 
             return (
               <div
@@ -222,7 +245,7 @@ export default function QuestionList({
                     </p>
                   </div>
 
-                  {/* Score Pill and Chevron */}
+                  {/* Score Pill, Teacher Edit & Chevron */}
                   <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
                     {score !== null ? (
                       <span className={`rounded-full px-2.5 py-0.5 text-xs ${scoreBadgeColor}`}>
@@ -255,7 +278,7 @@ export default function QuestionList({
                   </div>
                 </div>
 
-                {/* Expanded Details: Match Confidence + Feedback + Focus Button */}
+                {/* Expanded Details: Match Confidence + Feedback + Teacher Override */}
                 {isExpanded && (
                   <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 animate-in fade-in duration-150">
                     {/* Semantic Match Chip */}
@@ -270,28 +293,91 @@ export default function QuestionList({
                       </div>
                     )}
 
-                    {/* AI Feedback Banner */}
-                    <div
-                      className={`rounded-xl p-2.5 border text-xs leading-relaxed ${
-                        verdict === 'correct'
-                          ? 'bg-emerald-50/70 border-emerald-100 text-emerald-900'
-                          : verdict === 'incorrect'
-                          ? 'bg-rose-50/70 border-rose-100 text-rose-900'
-                          : isUnanswered
-                          ? 'bg-amber-50/70 border-amber-100 text-amber-900'
-                          : 'bg-gray-50 border-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <p className="text-[11px] font-bold mb-1 flex items-center gap-1">
-                        <span className="text-[#FF5722]">✦</span> AI Evaluator Feedback
-                      </p>
-                      <p className="text-xs">
-                        {graded?.feedback ||
-                          (isUnanswered
-                            ? 'This question was not attempted by the student on the answer sheet (0 marks).'
-                            : 'Answer extracted and mapped to the answer sheet.')}
-                      </p>
-                    </div>
+                    {/* Teacher Edit Form vs Regular Display */}
+                    {isEditing ? (
+                      <div className="rounded-xl border border-orange-200 bg-orange-50/40 p-3 space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-900">Teacher Grade Override:</span>
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-[11px] font-semibold text-gray-600">Marks:</label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={maxMarks}
+                              value={editScore}
+                              onChange={(e) => setEditScore(Number(e.target.value))}
+                              className="w-14 rounded-lg border border-gray-300 bg-white px-2 py-0.5 text-xs font-bold text-gray-900 outline-none focus:border-orange-500"
+                            />
+                            <span className="text-gray-500">/ {maxMarks}</span>
+                          </div>
+                        </div>
+                        <textarea
+                          value={editFeedback}
+                          onChange={(e) => setEditFeedback(e.target.value)}
+                          rows={2}
+                          placeholder="Add teacher evaluation remarks..."
+                          className="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-800 outline-none focus:border-orange-500"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingQuestionId(null);
+                            }}
+                            className="rounded-lg px-2.5 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => saveEditing(q.id, e)}
+                            className="rounded-lg bg-orange-600 px-3 py-1 text-[11px] font-bold text-white hover:bg-orange-700 shadow-2xs"
+                          >
+                            Save Override ✓
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className={`rounded-xl p-2.5 border text-xs leading-relaxed ${
+                          verdict === 'correct'
+                            ? 'bg-emerald-50/70 border-emerald-100 text-emerald-900'
+                            : verdict === 'incorrect'
+                            ? 'bg-rose-50/70 border-rose-100 text-rose-900'
+                            : isUnanswered
+                            ? 'bg-amber-50/70 border-amber-100 text-amber-900'
+                            : 'bg-gray-50 border-gray-100 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[11px] font-bold flex items-center gap-1">
+                            <span className="text-[#FF5722]">✦</span> AI Evaluator Feedback
+                          </p>
+                          <button
+                            type="button"
+                            onClick={(e) =>
+                              startEditing(
+                                q.id,
+                                score ?? 0,
+                                graded?.feedback || (isUnanswered ? 'Question not attempted' : ''),
+                                e
+                              )
+                            }
+                            className="text-[10px] font-bold text-gray-500 hover:text-orange-600 transition flex items-center gap-1 cursor-pointer"
+                            title="Edit marks or remarks"
+                          >
+                            <span>✏️</span> Edit
+                          </button>
+                        </div>
+                        <p className="text-xs">
+                          {graded?.feedback ||
+                            (isUnanswered
+                              ? 'This question was not attempted by the student on the answer sheet (0 marks).'
+                              : 'Answer extracted and mapped to the answer sheet.')}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

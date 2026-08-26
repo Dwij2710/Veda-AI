@@ -8,9 +8,18 @@ interface Props {
   mapping: MappingResult;
   grading: GradingResult | null;
   gradingLoading: boolean;
+  onOpenReportCard?: () => void;
+  onOpenAnalytics?: () => void;
 }
 
-export default function GradingSummary({ questions, mapping, grading, gradingLoading }: Props) {
+export default function GradingSummary({
+  questions,
+  mapping,
+  grading,
+  gradingLoading,
+  onOpenReportCard,
+  onOpenAnalytics
+}: Props) {
   const [showFeedback, setShowFeedback] = useState(false);
   const answeredCount = questions.length - mapping.unansweredQuestionIds.length;
 
@@ -60,9 +69,9 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
 
   return (
     <div className="border-b border-gray-200/80 bg-white shadow-2xs">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2.5">
         {/* Statistics Counts */}
-        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 font-medium">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-gray-500 font-medium">
           <span className="flex items-center gap-1.5">
             <span className="flex h-2 w-2 rounded-full bg-gray-400" />
             <span className="font-bold text-gray-900">{questions.length}</span> questions
@@ -76,15 +85,15 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
             <span className="font-bold text-rose-600">{mapping.unansweredQuestionIds.length}</span> unanswered
           </span>
           {mapping.unmatchedAnswerBlockIds.length > 0 && (
-            <span className="flex items-center gap-1.5">
+            <span className="hidden sm:flex items-center gap-1.5">
               <span className="flex h-2 w-2 rounded-full bg-amber-500" />
               <span className="font-bold text-amber-700">{mapping.unmatchedAnswerBlockIds.length}</span> unmatched
             </span>
           )}
         </div>
 
-        {/* Right Grading Total, Feedback Toggle & Export Button */}
-        <div className="flex items-center gap-2.5">
+        {/* Right Grading Total, Modals & Export Button */}
+        <div className="flex flex-wrap items-center gap-2">
           {gradingLoading ? (
             <div className="flex items-center gap-1.5 text-xs text-orange-600 font-medium animate-pulse">
               <span>✦</span> Grading in background...
@@ -101,8 +110,8 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
               )}
 
               {grading.totalScore != null && grading.totalMaxScore != null && (
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-gray-900 px-3.5 py-1 text-xs font-bold text-white shadow-2xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="rounded-full bg-gray-900 px-3 py-1 text-xs font-bold text-white shadow-2xs">
                     Score: {grading.totalScore} / {grading.totalMaxScore}
                   </span>
                   <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
@@ -111,14 +120,38 @@ export default function GradingSummary({ questions, mapping, grading, gradingLoa
                 </div>
               )}
 
-              {/* Export Report Button */}
+              {/* Dynamic Analytics Modal Button */}
+              {onOpenAnalytics && (
+                <button
+                  onClick={onOpenAnalytics}
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition shadow-2xs cursor-pointer"
+                  title="View exam score analytics and distribution charts"
+                >
+                  <span>📊</span>
+                  <span className="hidden sm:inline">Analytics</span>
+                </button>
+              )}
+
+              {/* Dynamic Report Card Modal Button */}
+              {onOpenReportCard && (
+                <button
+                  onClick={onOpenReportCard}
+                  className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-2xs cursor-pointer"
+                  title="Generate printable student report card"
+                >
+                  <span>📄</span>
+                  <span className="hidden sm:inline">Report Card</span>
+                </button>
+              )}
+
+              {/* Export JSON Report Button */}
               <button
                 onClick={handleExportReport}
-                className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-2xs cursor-pointer"
                 title="Download full evaluation report as JSON"
               >
                 <span>📥</span>
-                <span>Export Report</span>
+                <span className="hidden sm:inline">Export</span>
               </button>
             </>
           ) : null}

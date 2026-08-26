@@ -9,6 +9,8 @@ import QuestionList from '@/components/QuestionList';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
 import GradingSummary from '@/components/GradingSummary';
 import SettingsModal from '@/components/SettingsModal';
+import ReportCardModal from '@/components/ReportCardModal';
+import ClassAnalyticsModal from '@/components/ClassAnalyticsModal';
 import { fileToPageImages } from '@/lib/pdfToImages';
 import {
   SAMPLE_QUESTIONS,
@@ -64,6 +66,8 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<'questions' | 'answers'>('questions');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isReportCardOpen, setIsReportCardOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
   const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
@@ -190,6 +194,33 @@ export default function Home() {
       setScreen('upload');
       setSidebarCollapsed(false);
     }
+  };
+
+  // Human-in-the-Loop: Teacher score & feedback override
+  const handleUpdateGrading = (questionId: string, newScore: number, newFeedback: string) => {
+    if (!grading) return;
+    const targetQ = questions.find((q) => q.id === questionId);
+    const maxScore = targetQ?.maxMarks ?? targetQ?.marks ?? 5;
+
+    const updatedPerQ = grading.perQuestion.map((g) => {
+      if (g.questionId === questionId) {
+        return {
+          ...g,
+          score: Math.min(maxScore, Math.max(0, newScore)),
+          verdict: (newScore === maxScore ? 'correct' : newScore > 0 ? 'partially_correct' : 'incorrect') as 'correct' | 'partially_correct' | 'incorrect',
+          feedback: newFeedback
+        };
+      }
+      return g;
+    });
+
+    const newTotal = updatedPerQ.reduce((sum, g) => sum + g.score, 0);
+
+    setGrading({
+      ...grading,
+      perQuestion: updatedPerQ,
+      totalScore: newTotal
+    });
   };
 
   async function handleStartMapping() {
@@ -355,12 +386,14 @@ export default function Home() {
         {/* Mapping Screen (Responsive Desktop Side-by-Side & Mobile Segmented Tabs) */}
         {screen === 'results' && mapping && (
           <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Top Grading & Summary Bar */}
+            {/* Top Grading & Summary Bar with Report Card & Analytics Triggers */}
             <GradingSummary
               questions={questions}
               mapping={mapping}
               grading={grading}
               gradingLoading={gradingLoading}
+              onOpenReportCard={() => setIsReportCardOpen(true)}
+              onOpenAnalytics={() => setIsAnalyticsOpen(true)}
             />
 
             {/* Mobile Segmented Tab Switcher (Visible only on mobile screens < md) */}
@@ -407,6 +440,7 @@ export default function Home() {
                   onSelect={(id) => {
                     setSelectedQuestionId(id);
                   }}
+                  onUpdateGrading={handleUpdateGrading}
                 />
               </div>
 
@@ -440,6 +474,28 @@ export default function Home() {
         settings={settings}
         onSave={handleSaveSettings}
       />
+
+      {/* Dynamic Student Report Card Modal */}
+      {mapping && (
+        <ReportCardModal
+          isOpen={isReportCardOpen}
+          onClose={() => setIsReportCardOpen(false)}
+          questions={questions}
+          mapping={mapping}
+          grading={grading}
+        />
+      )}
+
+      {/* Dynamic Class Analytics Modal */}
+      {mapping && (
+        <ClassAnalyticsModal
+          isOpen={isAnalyticsOpen}
+          onClose={() => setIsAnalyticsOpen(false)}
+          questions={questions}
+          mapping={mapping}
+          grading={grading}
+        />
+      )}
     </div>
   );
 }
