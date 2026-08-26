@@ -68,6 +68,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReportCardOpen, setIsReportCardOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [activeStudent, setActiveStudent] = useState<string>('Student 1 (Aryan Sharma)');
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
   const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
@@ -220,6 +221,46 @@ export default function Home() {
       ...grading,
       perQuestion: updatedPerQ,
       totalScore: newTotal
+    });
+  };
+
+  // Human-in-the-Loop: Reassign Answer Block
+  const handleReassignAnswer = (currentQuestionId: string, newQuestionId: string) => {
+    if (!mapping) return;
+
+    const currentMap = mapping.mappings.find((m) => m.questionId === currentQuestionId);
+    const blocksToMove = currentMap?.answerBlockIds || [];
+
+    const newMappings = mapping.mappings
+      .filter((m) => m.questionId !== currentQuestionId)
+      .map((m) => {
+        if (m.questionId === newQuestionId) {
+          return {
+            ...m,
+            answerBlockIds: Array.from(new Set([...m.answerBlockIds, ...blocksToMove])),
+            reason: 'Manually linked by teacher'
+          };
+        }
+        return m;
+      });
+
+    if (!newMappings.some((m) => m.questionId === newQuestionId) && blocksToMove.length > 0) {
+      newMappings.push({
+        questionId: newQuestionId,
+        answerBlockIds: blocksToMove,
+        confidence: 0.98,
+        reason: 'Manually linked by teacher'
+      });
+    }
+
+    const newUnanswered = questions
+      .filter((q) => !newMappings.some((m) => m.questionId === q.id && m.answerBlockIds.length > 0))
+      .map((q) => q.id);
+
+    setMapping({
+      ...mapping,
+      mappings: newMappings,
+      unansweredQuestionIds: newUnanswered
     });
   };
 
@@ -386,12 +427,14 @@ export default function Home() {
         {/* Mapping Screen (Responsive Desktop Side-by-Side & Mobile Segmented Tabs) */}
         {screen === 'results' && mapping && (
           <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Top Grading & Summary Bar with Report Card & Analytics Triggers */}
+            {/* Top Grading & Summary Bar with Student Roster, CSV Marksheet, Report Card & Analytics */}
             <GradingSummary
               questions={questions}
               mapping={mapping}
               grading={grading}
               gradingLoading={gradingLoading}
+              activeStudent={activeStudent}
+              onSelectStudent={setActiveStudent}
               onOpenReportCard={() => setIsReportCardOpen(true)}
               onOpenAnalytics={() => setIsAnalyticsOpen(true)}
             />
@@ -441,6 +484,7 @@ export default function Home() {
                     setSelectedQuestionId(id);
                   }}
                   onUpdateGrading={handleUpdateGrading}
+                  onReassignAnswer={handleReassignAnswer}
                 />
               </div>
 
@@ -483,6 +527,7 @@ export default function Home() {
           questions={questions}
           mapping={mapping}
           grading={grading}
+          studentName={activeStudent}
         />
       )}
 

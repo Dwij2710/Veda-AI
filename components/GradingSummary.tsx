@@ -8,6 +8,8 @@ interface Props {
   mapping: MappingResult;
   grading: GradingResult | null;
   gradingLoading: boolean;
+  activeStudent?: string;
+  onSelectStudent?: (studentName: string) => void;
   onOpenReportCard?: () => void;
   onOpenAnalytics?: () => void;
 }
@@ -17,15 +19,18 @@ export default function GradingSummary({
   mapping,
   grading,
   gradingLoading,
+  activeStudent = 'Student 1 (Aryan Sharma)',
+  onSelectStudent,
   onOpenReportCard,
   onOpenAnalytics
 }: Props) {
   const [showFeedback, setShowFeedback] = useState(false);
   const answeredCount = questions.length - mapping.unansweredQuestionIds.length;
 
-  const handleExportReport = () => {
+  const handleExportJsonReport = () => {
     const reportData = {
       evaluatedAt: new Date().toISOString(),
+      student: activeStudent,
       summary: {
         totalQuestions: questions.length,
         answeredCount,
@@ -67,11 +72,51 @@ export default function GradingSummary({
     URL.revokeObjectURL(url);
   };
 
+  const handleExportCsvMarksheet = () => {
+    let csv = `Student Name,Total Score,Max Score,Percentage,Grade,${questions.map((q) => `Q${q.number}`).join(',')}\n`;
+    const totalScore = grading?.totalScore ?? 0;
+    const maxScore = grading?.totalMaxScore ?? 50;
+    const pct = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+    const grade = pct >= 90 ? 'A+' : pct >= 75 ? 'A' : pct >= 60 ? 'B' : 'C';
+
+    const qScores = questions.map((q) => {
+      const isUnanswered = mapping.unansweredQuestionIds.includes(q.id);
+      const graded = grading?.perQuestion.find((g) => g.questionId === q.id);
+      return graded?.score ?? (isUnanswered ? 0 : 0);
+    });
+
+    csv += `"${activeStudent}",${totalScore},${maxScore},${pct}%,${grade},${qScores.join(',')}\n`;
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Classroom_Marksheet_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="border-b border-gray-200/80 bg-white shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2.5">
-        {/* Statistics Counts */}
+        {/* Statistics Counts & Multi-Student Selector */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-gray-500 font-medium">
+          {/* Multi-Student Switcher */}
+          {onSelectStudent && (
+            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
+              <span className="text-gray-400">👨‍🎓</span>
+              <select
+                value={activeStudent}
+                onChange={(e) => onSelectStudent(e.target.value)}
+                className="bg-transparent text-xs font-bold text-gray-800 outline-none cursor-pointer"
+              >
+                <option value="Student 1 (Aryan Sharma)">Student 1 (Aryan Sharma)</option>
+                <option value="Student 2 (Priya Verma)">Student 2 (Priya Verma)</option>
+                <option value="Student 3 (Rohan Gupta)">Student 3 (Rohan Gupta)</option>
+              </select>
+            </div>
+          )}
+
           <span className="flex items-center gap-1.5">
             <span className="flex h-2 w-2 rounded-full bg-gray-400" />
             <span className="font-bold text-gray-900">{questions.length}</span> questions
@@ -84,15 +129,9 @@ export default function GradingSummary({
             <span className="flex h-2 w-2 rounded-full bg-rose-400" />
             <span className="font-bold text-rose-600">{mapping.unansweredQuestionIds.length}</span> unanswered
           </span>
-          {mapping.unmatchedAnswerBlockIds.length > 0 && (
-            <span className="hidden sm:flex items-center gap-1.5">
-              <span className="flex h-2 w-2 rounded-full bg-amber-500" />
-              <span className="font-bold text-amber-700">{mapping.unmatchedAnswerBlockIds.length}</span> unmatched
-            </span>
-          )}
         </div>
 
-        {/* Right Grading Total, Modals & Export Button */}
+        {/* Right Grading Total, Modals & Export Actions */}
         <div className="flex flex-wrap items-center gap-2">
           {gradingLoading ? (
             <div className="flex items-center gap-1.5 text-xs text-orange-600 font-medium animate-pulse">
@@ -144,9 +183,19 @@ export default function GradingSummary({
                 </button>
               )}
 
+              {/* Export CSV Marksheet Button */}
+              <button
+                onClick={handleExportCsvMarksheet}
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer"
+                title="Download CSV Marksheet roster"
+              >
+                <span>📑</span>
+                <span className="hidden sm:inline">CSV Marksheet</span>
+              </button>
+
               {/* Export JSON Report Button */}
               <button
-                onClick={handleExportReport}
+                onClick={handleExportJsonReport}
                 className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-2xs cursor-pointer"
                 title="Download full evaluation report as JSON"
               >

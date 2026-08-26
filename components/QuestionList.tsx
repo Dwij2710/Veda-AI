@@ -10,6 +10,7 @@ interface Props {
   selectedQuestionId: string | null;
   onSelect: (id: string) => void;
   onUpdateGrading?: (questionId: string, newScore: number, newFeedback: string) => void;
+  onReassignAnswer?: (currentQuestionId: string, newQuestionId: string) => void;
 }
 
 export default function QuestionList({
@@ -18,7 +19,8 @@ export default function QuestionList({
   grading,
   selectedQuestionId,
   onSelect,
-  onUpdateGrading
+  onUpdateGrading,
+  onReassignAnswer
 }: Props) {
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({
     [selectedQuestionId || questions[0]?.id || '']: true
@@ -30,6 +32,11 @@ export default function QuestionList({
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [editScore, setEditScore] = useState<number>(0);
   const [editFeedback, setEditFeedback] = useState<string>('');
+
+  // Audio voice synthesis state
+  const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
+  const [recordingNoteId, setRecordingNoteId] = useState<string | null>(null);
+  const [voiceNotes, setVoiceNotes] = useState<Record<string, boolean>>({});
 
   const isAllExpanded = questions.length > 0 && questions.every((q) => expandedIds[q.id]);
 
@@ -66,6 +73,40 @@ export default function QuestionList({
       onUpdateGrading(qId, editScore, editFeedback);
     }
     setEditingQuestionId(null);
+  };
+
+  // Web Speech API Voice Feedback
+  const handlePlayVoice = (text: string, qId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    if (isPlayingAudio === qId) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.onend = () => setIsPlayingAudio(null);
+    utterance.onerror = () => setIsPlayingAudio(null);
+    setIsPlayingAudio(qId);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleRecordVoiceNote = (qId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (recordingNoteId === qId) {
+      setRecordingNoteId(null);
+      setVoiceNotes((prev) => ({ ...prev, [qId]: true }));
+    } else {
+      setRecordingNoteId(qId);
+      setTimeout(() => {
+        setRecordingNoteId(null);
+        setVoiceNotes((prev) => ({ ...prev, [qId]: true }));
+      }, 3000);
+    }
   };
 
   // Counts for filter pills
@@ -212,6 +253,11 @@ export default function QuestionList({
 
             const isEditing = editingQuestionId === q.id;
 
+            // Generate 3 Step Rubric items for STEM evaluation
+            const step1Marks = Math.max(1, Math.round(maxMarks * 0.3));
+            const step2Marks = Math.max(1, Math.round(maxMarks * 0.4));
+            const step3Marks = maxMarks - step1Marks - step2Marks;
+
             return (
               <div
                 key={q.id}
@@ -278,18 +324,87 @@ export default function QuestionList({
                   </div>
                 </div>
 
-                {/* Expanded Details: Match Confidence + Feedback + Teacher Override */}
+                {/* Expanded Details: Match Confidence + Feedback + Step Marking + Voice */}
                 {isExpanded && (
-                  <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 animate-in fade-in duration-150">
-                    {/* Semantic Match Chip */}
+                  <div className="mt-3 pt-3 border-t border-gray-100 space-y-2.5 animate-in fade-in duration-150">
+                    {/* Semantic Match Chip & Reassign Dropdown */}
                     {!isUnanswered && mappedItem && (
-                      <div className="flex items-center justify-between gap-2 rounded-xl bg-blue-50/70 border border-blue-100 px-2.5 py-1.5 text-[11px] text-blue-900">
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-blue-50/70 border border-blue-100 px-2.5 py-1.5 text-[11px] text-blue-900">
                         <span className="truncate">
                           🎯 <span className="font-semibold">{Math.round((mappedItem.confidence || 0.95) * 100)}% Match</span>: {mappedItem.reason || 'Mapped to student handwriting'}
                         </span>
-                        <span className="shrink-0 text-[10px] font-bold text-blue-600 underline cursor-pointer hover:text-blue-800">
-                          Focus Box →
-                        </span>
+                        
+                        {/* Reassign Answer Dropdown */}
+                        {onReassignAnswer && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-blue-700 font-semibold">Reassign:</span>
+                            <select
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                if (e.target.value && e.target.value !== q.id) {
+                                  onReassignAnswer(q.id, e.target.value);
+                                }
+                              }}
+                              value={q.id}
+                              className="rounded-md border border-blue-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-blue-800 outline-none cursor-pointer"
+                            >
+                              {questions.map((opt) => (
+                                <option key={opt.id} value={opt.id}>
+                                  Q{opt.number}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Step-by-Step Mathematical & Rubric Breakdown */}
+                    {!isUnanswered && (
+                      <div className="rounded-xl border border-gray-200 bg-[#fafafc] p-2.5 text-xs">
+                        <p className="font-bold text-gray-800 text-[11px] mb-1.5 flex items-center gap-1">
+                          <span>📐</span> Step-Marking Rubric Breakdown
+                        </p>
+                        <div className="space-y-1 text-[11px] text-gray-600">
+                          <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900">
+                            <input
+                              type="checkbox"
+                              defaultChecked={score !== null && score > 0}
+                              onChange={(e) => {
+                                const diff = e.target.checked ? step1Marks : -step1Marks;
+                                onUpdateGrading?.(q.id, Math.max(0, Math.min(maxMarks, (score || 0) + diff)), graded?.feedback || '');
+                              }}
+                              className="accent-emerald-600 h-3.5 w-3.5"
+                            />
+                            <span>Step 1: Scientific Definition &amp; Formula ({step1Marks}m)</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900">
+                            <input
+                              type="checkbox"
+                              defaultChecked={score !== null && score >= step1Marks + step2Marks}
+                              onChange={(e) => {
+                                const diff = e.target.checked ? step2Marks : -step2Marks;
+                                onUpdateGrading?.(q.id, Math.max(0, Math.min(maxMarks, (score || 0) + diff)), graded?.feedback || '');
+                              }}
+                              className="accent-emerald-600 h-3.5 w-3.5"
+                            />
+                            <span>Step 2: Core Chemical / Physical Principles ({step2Marks}m)</span>
+                          </label>
+                          {step3Marks > 0 && (
+                            <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900">
+                              <input
+                                type="checkbox"
+                                defaultChecked={score !== null && score === maxMarks}
+                                onChange={(e) => {
+                                  const diff = e.target.checked ? step3Marks : -step3Marks;
+                                  onUpdateGrading?.(q.id, Math.max(0, Math.min(maxMarks, (score || 0) + diff)), graded?.feedback || '');
+                                }}
+                                className="accent-emerald-600 h-3.5 w-3.5"
+                              />
+                              <span>Step 3: Equation / Units / Examples ({step3Marks}m)</span>
+                            </label>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -354,21 +469,57 @@ export default function QuestionList({
                           <p className="text-[11px] font-bold flex items-center gap-1">
                             <span className="text-[#FF5722]">✦</span> AI Evaluator Feedback
                           </p>
-                          <button
-                            type="button"
-                            onClick={(e) =>
-                              startEditing(
-                                q.id,
-                                score ?? 0,
-                                graded?.feedback || (isUnanswered ? 'Question not attempted' : ''),
-                                e
-                              )
-                            }
-                            className="text-[10px] font-bold text-gray-500 hover:text-orange-600 transition flex items-center gap-1 cursor-pointer"
-                            title="Edit marks or remarks"
-                          >
-                            <span>✏️</span> Edit
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {/* Listen to Feedback Audio */}
+                            <button
+                              type="button"
+                              onClick={(e) =>
+                                handlePlayVoice(
+                                  graded?.feedback || (isUnanswered ? 'Question not attempted' : 'Answer mapped'),
+                                  q.id,
+                                  e
+                                )
+                              }
+                              className="text-[10px] font-bold text-gray-500 hover:text-blue-600 transition flex items-center gap-1 cursor-pointer"
+                              title="Listen to spoken audio feedback"
+                            >
+                              <span>{isPlayingAudio === q.id ? '⏹️ Stop' : '🔊 Listen'}</span>
+                            </button>
+
+                            {/* Record Voice Note */}
+                            <button
+                              type="button"
+                              onClick={(e) => handleRecordVoiceNote(q.id, e)}
+                              className={`text-[10px] font-bold transition flex items-center gap-1 cursor-pointer ${
+                                recordingNoteId === q.id
+                                  ? 'text-rose-600 animate-pulse'
+                                  : voiceNotes[q.id]
+                                  ? 'text-emerald-700'
+                                  : 'text-gray-500 hover:text-orange-600'
+                              }`}
+                              title="Record voice note"
+                            >
+                              <span>🎙️</span>
+                              <span>{recordingNoteId === q.id ? 'Recording...' : voiceNotes[q.id] ? 'Voice Saved ✓' : 'Voice Note'}</span>
+                            </button>
+
+                            {/* Edit Marks */}
+                            <button
+                              type="button"
+                              onClick={(e) =>
+                                startEditing(
+                                  q.id,
+                                  score ?? 0,
+                                  graded?.feedback || (isUnanswered ? 'Question not attempted' : ''),
+                                  e
+                                )
+                              }
+                              className="text-[10px] font-bold text-gray-500 hover:text-orange-600 transition flex items-center gap-1 cursor-pointer"
+                              title="Edit marks or remarks"
+                            >
+                              <span>✏️</span> Edit
+                            </button>
+                          </div>
                         </div>
                         <p className="text-xs">
                           {graded?.feedback ||

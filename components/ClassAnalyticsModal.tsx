@@ -43,6 +43,15 @@ export default function ClassAnalyticsModal({
 
   const zeroQuestions = totalQuestions - perfectQuestions - partialQuestions;
 
+  // Identify weak questions for pedagogical recommendation
+  const weakQuestions = questions.filter((q) => {
+    const isUnanswered = mapping.unansweredQuestionIds.includes(q.id);
+    if (isUnanswered) return true;
+    const graded = grading?.perQuestion.find((g) => g.questionId === q.id);
+    const max = graded?.maxScore ?? q.maxMarks ?? q.marks ?? 5;
+    return (graded?.score ?? 0) < max * 0.5;
+  });
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-200">
@@ -63,7 +72,7 @@ export default function ClassAnalyticsModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {/* Top 4 KPI Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3 text-center">
@@ -83,6 +92,19 @@ export default function ClassAnalyticsModal({
               <p className="text-xl font-black text-rose-900 mt-1">{zeroQuestions} Qs</p>
             </div>
           </div>
+
+          {/* Remedial Classroom Recommendations Banner */}
+          {weakQuestions.length > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5 text-xs leading-relaxed text-amber-900">
+              <p className="font-bold mb-1 flex items-center gap-1.5 text-amber-950">
+                <span>💡</span> Pedagogical Teacher Recommendation:
+              </p>
+              <p>
+                Student experienced difficulty on {weakQuestions.map((q) => `Q${q.number}`).join(', ')}. 
+                Recommend a 15-minute focused classroom revision on underlying scientific formulas and step derivations.
+              </p>
+            </div>
+          )}
 
           {/* Performance Distribution Progress Bars */}
           <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
