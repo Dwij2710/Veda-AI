@@ -68,7 +68,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReportCardOpen, setIsReportCardOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [activeStudent, setActiveStudent] = useState<string>('Student 1 (Aryan Sharma)');
+  const [activeStudent, setActiveStudent] = useState<string>('Aryan Sharma');
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
   const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);

@@ -18,7 +18,7 @@ export default function ReportCardModal({
   questions,
   mapping,
   grading,
-  studentName = 'Student 1',
+  studentName = 'Aryan Sharma',
   examTitle = 'Evaluation Assessment'
 }: Props) {
   if (!isOpen) return null;

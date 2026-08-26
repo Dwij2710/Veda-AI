@@ -19,7 +19,7 @@ export default function GradingSummary({
   mapping,
   grading,
   gradingLoading,
-  activeStudent = 'Student 1 (Aryan Sharma)',
+  activeStudent = 'Aryan Sharma',
   onSelectStudent,
   onOpenReportCard,
   onOpenAnalytics
@@ -111,9 +111,9 @@ export default function GradingSummary({
                 onChange={(e) => onSelectStudent(e.target.value)}
                 className="bg-transparent text-xs font-bold text-gray-900 outline-none cursor-pointer pr-1"
               >
-                <option value="Student 1 (Aryan Sharma)">Student 1 (Aryan Sharma)</option>
-                <option value="Student 2 (Priya Verma)">Student 2 (Priya Verma)</option>
-                <option value="Student 3 (Rohan Gupta)">Student 3 (Rohan Gupta)</option>
+                <option value="Aryan Sharma">Aryan Sharma</option>
+                <option value="Priya Verma">Priya Verma</option>
+                <option value="Rohan Gupta">Rohan Gupta</option>
               </select>
             </div>
           )}
