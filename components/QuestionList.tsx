@@ -469,7 +469,7 @@ export default function QuestionList({
                           <p className="text-[11px] font-bold flex items-center gap-1">
                             <span className="text-[#FF5722]">✦</span> AI Evaluator Feedback
                           </p>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             {/* Listen to Feedback Audio */}
                             <button
                               type="button"
@@ -480,7 +480,11 @@ export default function QuestionList({
                                   e
                                 )
                               }
-                              className="text-[10px] font-bold text-gray-500 hover:text-blue-600 transition flex items-center gap-1 cursor-pointer"
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition shadow-2xs cursor-pointer ${
+                                isPlayingAudio === q.id
+                                  ? 'bg-blue-600 text-white animate-pulse'
+                                  : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                              }`}
                               title="Listen to spoken audio feedback"
                             >
                               <span>{isPlayingAudio === q.id ? '⏹️ Stop' : '🔊 Listen'}</span>
@@ -490,12 +494,12 @@ export default function QuestionList({
                             <button
                               type="button"
                               onClick={(e) => handleRecordVoiceNote(q.id, e)}
-                              className={`text-[10px] font-bold transition flex items-center gap-1 cursor-pointer ${
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition shadow-2xs cursor-pointer ${
                                 recordingNoteId === q.id
-                                  ? 'text-rose-600 animate-pulse'
+                                  ? 'bg-rose-600 text-white animate-pulse'
                                   : voiceNotes[q.id]
-                                  ? 'text-emerald-700'
-                                  : 'text-gray-500 hover:text-orange-600'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
                               }`}
                               title="Record voice note"
                             >
@@ -514,7 +518,7 @@ export default function QuestionList({
                                   e
                                 )
                               }
-                              className="text-[10px] font-bold text-gray-500 hover:text-orange-600 transition flex items-center gap-1 cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-2 py-0.5 text-[10px] font-bold text-orange-700 hover:bg-orange-100 transition shadow-2xs cursor-pointer"
                               title="Edit marks or remarks"
                             >
                               <span>✏️</span> Edit
