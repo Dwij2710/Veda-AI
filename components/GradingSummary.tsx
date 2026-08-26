@@ -3,12 +3,20 @@
 import { useState } from 'react';
 import type { GradingResult, MappingResult, ExtractedQuestion } from '@/lib/types';
 
+export interface StudentBatchRecord {
+  studentName: string;
+  grading: GradingResult | null;
+  mapping: MappingResult | null;
+}
+
 interface Props {
   questions: ExtractedQuestion[];
   mapping: MappingResult;
   grading: GradingResult | null;
   gradingLoading: boolean;
   activeStudent?: string;
+  students?: string[];
+  allStudentsData?: Record<string, StudentBatchRecord>;
   onSelectStudent?: (studentName: string) => void;
   onOpenReportCard?: () => void;
   onOpenAnalytics?: () => void;
@@ -20,6 +28,8 @@ export default function GradingSummary({
   grading,
   gradingLoading,
   activeStudent = 'Aryan Sharma',
+  students = ['Aryan Sharma', 'Priya Verma', 'Rohan Gupta'],
+  allStudentsData,
   onSelectStudent,
   onOpenReportCard,
   onOpenAnalytics
@@ -67,31 +77,51 @@ export default function GradingSummary({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `VedaAI_Assessment_Report_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `VedaAI_Assessment_Report_${activeStudent.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleExportCsvMarksheet = () => {
     let csv = `Student Name,Total Score,Max Score,Percentage,Grade,${questions.map((q) => `Q${q.number}`).join(',')}\n`;
-    const totalScore = grading?.totalScore ?? 0;
-    const maxScore = grading?.totalMaxScore ?? 50;
-    const pct = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-    const grade = pct >= 90 ? 'A+' : pct >= 75 ? 'A' : pct >= 60 ? 'B' : 'C';
+    const defaultMaxScore = grading?.totalMaxScore ?? questions.reduce((sum, q) => sum + (q.maxMarks ?? q.marks ?? 5), 0);
 
-    const qScores = questions.map((q) => {
-      const isUnanswered = mapping.unansweredQuestionIds.includes(q.id);
-      const graded = grading?.perQuestion.find((g) => g.questionId === q.id);
-      return graded?.score ?? (isUnanswered ? 0 : 0);
-    });
+    if (allStudentsData && Object.keys(allStudentsData).length > 0) {
+      // Export entire multi-student batch roster in CSV
+      Object.entries(allStudentsData).forEach(([name, data]) => {
+        const sTotal = data.grading?.totalScore ?? 0;
+        const sMax = data.grading?.totalMaxScore ?? defaultMaxScore;
+        const pct = sMax > 0 ? Math.round((sTotal / sMax) * 100) : 0;
+        const grade = pct >= 90 ? 'A+' : pct >= 75 ? 'A' : pct >= 60 ? 'B' : pct >= 40 ? 'C' : 'F';
 
-    csv += `"${activeStudent}",${totalScore},${maxScore},${pct}%,${grade},${qScores.join(',')}\n`;
+        const qScores = questions.map((q) => {
+          const isUn = data.mapping?.unansweredQuestionIds.includes(q.id);
+          const graded = data.grading?.perQuestion.find((g) => g.questionId === q.id);
+          return graded?.score ?? (isUn ? 0 : 0);
+        });
+
+        csv += `"${name}",${sTotal},${sMax},${pct}%,${grade},${qScores.join(',')}\n`;
+      });
+    } else {
+      // Single active student fallback
+      const totalScore = grading?.totalScore ?? 0;
+      const pct = defaultMaxScore > 0 ? Math.round((totalScore / defaultMaxScore) * 100) : 0;
+      const grade = pct >= 90 ? 'A+' : pct >= 75 ? 'A' : pct >= 60 ? 'B' : 'C';
+
+      const qScores = questions.map((q) => {
+        const isUnanswered = mapping.unansweredQuestionIds.includes(q.id);
+        const graded = grading?.perQuestion.find((g) => g.questionId === q.id);
+        return graded?.score ?? (isUnanswered ? 0 : 0);
+      });
+
+      csv += `"${activeStudent}",${totalScore},${defaultMaxScore},${pct}%,${grade},${qScores.join(',')}\n`;
+    }
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Classroom_Marksheet_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `Classroom_Marksheet_Batch_Export_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -102,18 +132,20 @@ export default function GradingSummary({
         {/* Statistics Counts & Multi-Student Selector */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5 text-xs text-gray-500 font-medium">
           {/* Prominent Multi-Student Switcher Pill */}
-          {onSelectStudent && (
+          {onSelectStudent && students && students.length > 0 && (
             <div className="flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-semibold text-orange-900 shadow-2xs">
               <span className="text-sm">👨‍🎓</span>
-              <span className="text-[10px] uppercase font-bold text-orange-600 tracking-wider">Student:</span>
+              <span className="text-[10px] uppercase font-bold text-orange-600 tracking-wider">Student ({students.length}):</span>
               <select
                 value={activeStudent}
                 onChange={(e) => onSelectStudent(e.target.value)}
-                className="bg-transparent text-xs font-bold text-gray-900 outline-none cursor-pointer pr-1"
+                className="bg-transparent text-xs font-bold text-gray-900 outline-none cursor-pointer pr-1 max-w-[200px] truncate"
               >
-                <option value="Aryan Sharma">Aryan Sharma</option>
-                <option value="Priya Verma">Priya Verma</option>
-                <option value="Rohan Gupta">Rohan Gupta</option>
+                {students.map((student) => (
+                  <option key={student} value={student}>
+                    {student}
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -212,7 +244,7 @@ export default function GradingSummary({
       {showFeedback && grading && grading.overallFeedback && (
         <div className="border-t border-orange-100 bg-orange-50/50 px-6 py-3 text-xs text-gray-700 leading-relaxed animate-in fade-in duration-150">
           <p className="font-bold text-gray-900 mb-0.5 flex items-center gap-1.5">
-            <span className="text-[#FF5722]">✦</span> AI Assessment Executive Summary
+            <span className="text-[#FF5722]">✦</span> AI Assessment Executive Summary ({activeStudent})
           </p>
           <p className="text-gray-700">{grading.overallFeedback}</p>
         </div>

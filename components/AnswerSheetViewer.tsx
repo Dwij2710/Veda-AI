@@ -189,7 +189,7 @@ export default function AnswerSheetViewer({
               const isBlockActive = selectedBlocks.some((b) => b.id === block.id);
               const mappedItem = mapping.mappings.find((m) => m.answerBlockIds.includes(block.id));
               const q = mappedItem ? questions.find((item) => item.id === mappedItem.questionId) : null;
-              const displayLabel = block.rawLabel || (q ? `Q${q.number}` : 'Ans');
+              const displayLabel = q ? `Q${q.number}.` : block.rawLabel || 'Ans';
 
               return (
                 <div

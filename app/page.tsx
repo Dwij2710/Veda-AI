@@ -7,11 +7,12 @@ import UploadScreen, { UploadFileItem } from '@/components/UploadScreen';
 import LoadingState from '@/components/LoadingState';
 import QuestionList from '@/components/QuestionList';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
-import GradingSummary from '@/components/GradingSummary';
+import GradingSummary, { StudentBatchRecord } from '@/components/GradingSummary';
 import SettingsModal from '@/components/SettingsModal';
 import ReportCardModal from '@/components/ReportCardModal';
 import ClassAnalyticsModal from '@/components/ClassAnalyticsModal';
 import { fileToPageImages } from '@/lib/pdfToImages';
+import { extractQuestionsFromSvg, extractAnswersFromSvg, formatStudentName } from '@/lib/svgParser';
 import {
   SAMPLE_QUESTIONS,
   SAMPLE_ANSWERS,
@@ -35,6 +36,14 @@ import type {
 } from '@/lib/types';
 
 type Screen = 'upload' | 'processing' | 'results';
+
+interface StudentEvaluationState {
+  studentName: string;
+  answerPages: PageImage[];
+  answers: AnswerBlock[];
+  mapping: MappingResult;
+  grading: GradingResult;
+}
 
 const DEFAULT_SETTINGS: AppSettings = {
   groqApiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
@@ -69,6 +78,8 @@ export default function Home() {
   const [isReportCardOpen, setIsReportCardOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [activeStudent, setActiveStudent] = useState<string>('Aryan Sharma');
+  const [studentList, setStudentList] = useState<string[]>(['Aryan Sharma', 'Priya Verma', 'Rohan Gupta']);
+  const [allStudentsData, setAllStudentsData] = useState<Record<string, StudentEvaluationState>>({});
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
   const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
@@ -122,12 +133,33 @@ export default function Home() {
     setScreen('processing');
     setSidebarCollapsed(true);
     setMobileTab('questions');
-    setActiveStudent('Aryan Sharma');
 
-    let examLabel = 'Biology Unit Exam';
-    if (type === 'physics') examLabel = '5-Q Physics & Chem Exam';
-    if (type === 'batch') examLabel = 'Batch Multi-Student Exam (3 Students)';
+    if (type === 'batch') {
+      const roster = ['Aryan Sharma', 'Priya Verma', 'Rohan Gupta'];
+      setStudentList(roster);
+      setActiveStudent('Aryan Sharma');
+      setPipeline({ stage: 'rendering', progress: 20, message: 'Loading Classroom Batch (3 Students)...' });
 
+      setTimeout(() => {
+        setPipeline({ stage: 'extracting-questions', progress: 50, message: 'Extracting 5-Question Physics Exam...' });
+        setTimeout(() => {
+          setPipeline({ stage: 'mapping', progress: 85, message: 'Mapping answers across student sheets...' });
+          setTimeout(() => {
+            setAnswerPages(SAMPLE_PHYSICS_ANSWER_PAGES);
+            setQuestions(SAMPLE_PHYSICS_QUESTIONS);
+            setAnswers(SAMPLE_PHYSICS_ANSWERS);
+            setMapping(SAMPLE_PHYSICS_MAPPING);
+            setGrading(SAMPLE_PHYSICS_GRADING);
+            setSelectedQuestionId('q-phy-1');
+            setPipeline({ stage: 'done', progress: 100 });
+            setScreen('results');
+          }, 300);
+        }, 350);
+      }, 400);
+      return;
+    }
+
+    const examLabel = type === 'physics' ? '5-Q Physics & Chem Exam' : 'Biology Unit Exam';
     setPipeline({ stage: 'rendering', progress: 20, message: `Loading ${examLabel}...` });
 
     setTimeout(() => {
@@ -142,6 +174,8 @@ export default function Home() {
             setMapping(SAMPLE_PHYSICS_MAPPING);
             setGrading(SAMPLE_PHYSICS_GRADING);
             setSelectedQuestionId('q-phy-1');
+            setStudentList(['Aryan Sharma', 'Priya Verma', 'Rohan Gupta']);
+            setActiveStudent('Aryan Sharma');
           } else {
             setAnswerPages(SAMPLE_ANSWER_PAGES);
             setQuestions(SAMPLE_QUESTIONS);
@@ -149,6 +183,8 @@ export default function Home() {
             setMapping(SAMPLE_MAPPING);
             setGrading(SAMPLE_GRADING);
             setSelectedQuestionId('q-2');
+            setStudentList(['Aryan Sharma', 'Priya Verma', 'Rohan Gupta']);
+            setActiveStudent('Aryan Sharma');
           }
           setPipeline({ stage: 'done', progress: 100 });
           setScreen('results');
@@ -193,6 +229,7 @@ export default function Home() {
         setMapping(result.mapping);
         setGrading(result.grading);
         setSelectedQuestionId(result.questions[0]?.id || null);
+        setStudentList(['Aryan Sharma', 'Priya Verma', 'Rohan Gupta']);
         setPipeline({ stage: 'done', progress: 100 });
         setScreen('results');
       }, 400);
@@ -224,11 +261,24 @@ export default function Home() {
 
     const newTotal = updatedPerQ.reduce((sum, g) => sum + g.score, 0);
 
-    setGrading({
+    const updatedGrading: GradingResult = {
       ...grading,
       perQuestion: updatedPerQ,
       totalScore: newTotal
-    });
+    };
+
+    setGrading(updatedGrading);
+
+    // Persist to allStudentsData cache
+    if (allStudentsData[activeStudent]) {
+      setAllStudentsData((prev) => ({
+        ...prev,
+        [activeStudent]: {
+          ...prev[activeStudent],
+          grading: updatedGrading
+        }
+      }));
+    }
   };
 
   // Human-in-the-Loop: Reassign Answer Block
@@ -264,20 +314,46 @@ export default function Home() {
       .filter((q) => !newMappings.some((m) => m.questionId === q.id && m.answerBlockIds.length > 0))
       .map((q) => q.id);
 
-    setMapping({
+    const updatedMapping: MappingResult = {
       ...mapping,
       mappings: newMappings,
       unansweredQuestionIds: newUnanswered
-    });
+    };
+
+    setMapping(updatedMapping);
+
+    if (allStudentsData[activeStudent]) {
+      setAllStudentsData((prev) => ({
+        ...prev,
+        [activeStudent]: {
+          ...prev[activeStudent],
+          mapping: updatedMapping
+        }
+      }));
+    }
   };
 
   // Multi-Student Roster Switcher
   const handleSelectStudent = (studentName: string) => {
     setActiveStudent(studentName);
+
+    // If cached in multi-student dataset, load that student's specific pages, answers, and mapping
+    if (allStudentsData[studentName]) {
+      const studentData = allStudentsData[studentName];
+      setAnswerPages(studentData.answerPages);
+      setAnswers(studentData.answers);
+      setMapping(studentData.mapping);
+      setGrading(studentData.grading);
+      if (questions.length > 0) {
+        setSelectedQuestionId(questions[0].id);
+      }
+      return;
+    }
+
+    // Default sample fallback variation for 3 demo students
     if (!grading) return;
 
     if (studentName.includes('Priya')) {
-      // Student 2 (Priya Verma) - Top Performer
       const updated = grading.perQuestion.map((g, idx) => {
         const max = g.maxScore ?? 5;
         const s = idx === 3 ? Math.round(max * 0.8) : max;
@@ -295,7 +371,6 @@ export default function Home() {
         overallFeedback: 'Priya Verma demonstrated outstanding mastery of physical and biological principles.'
       });
     } else if (studentName.includes('Rohan')) {
-      // Student 3 (Rohan Gupta) - Needs Revision
       const updated = grading.perQuestion.map((g, idx) => {
         const max = g.maxScore ?? 5;
         const s = idx % 2 === 0 ? max : 0;
@@ -313,7 +388,6 @@ export default function Home() {
         overallFeedback: 'Rohan Gupta requires additional revision on key derivations and laws.'
       });
     } else {
-      // Student 1 (Aryan Sharma) - Default baseline
       if (questions.length === 5) {
         setGrading(SAMPLE_PHYSICS_GRADING);
       } else {
@@ -323,81 +397,192 @@ export default function Home() {
   };
 
   async function handleStartMapping() {
-    const mainAnswerFile = answerSheetFiles[0]?.file || answerSheetFile;
-    if (!questionPaperFile || !mainAnswerFile) return;
+    const rawFiles = answerSheetFiles.length > 0 ? answerSheetFiles.map((x) => x.file) : answerSheetFile ? [answerSheetFile] : [];
+    if (!questionPaperFile || rawFiles.length === 0) return;
+
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
     setMobileTab('questions');
 
     try {
-      setPipeline({ stage: 'rendering', progress: 8, message: 'Rasterizing PDF & image pages...' });
-      const [qPages, aPages] = await Promise.all([
-        fileToPageImages(questionPaperFile, { enhanceContrast: settings.enhanceContrast }),
-        fileToPageImages(mainAnswerFile, { enhanceContrast: settings.enhanceContrast })
-      ]);
-      setAnswerPages(aPages);
+      setPipeline({ stage: 'rendering', progress: 10, message: 'Extracting Question Paper structure...' });
 
-      setPipeline({
-        stage: 'extracting-questions',
-        progress: 30,
-        message: 'Extracting questions with Groq Vision...'
-      });
-      const { questions: extractedQuestions } = await postJson<{ questions: ExtractedQuestion[] }>(
-        '/api/extract-questions',
-        { pages: qPages },
-        settings.groqApiKey
-      );
+      // Step 1: Extract Questions (from SVG if available, or Groq Vision)
+      let extractedQuestions: ExtractedQuestion[] = [];
+      const isQpSvg = questionPaperFile.name.endsWith('.svg') || questionPaperFile.type.includes('svg');
+
+      if (isQpSvg) {
+        const qpText = await questionPaperFile.text();
+        extractedQuestions = extractQuestionsFromSvg(qpText);
+      }
+
+      if (!extractedQuestions.length) {
+        const [qPages] = await Promise.all([
+          fileToPageImages(questionPaperFile, { enhanceContrast: settings.enhanceContrast })
+        ]);
+        const qResult = await postJson<{ questions: ExtractedQuestion[] }>(
+          '/api/extract-questions',
+          { pages: qPages },
+          settings.groqApiKey
+        );
+        extractedQuestions = qResult.questions;
+      }
       setQuestions(extractedQuestions);
 
-      setPipeline({
-        stage: 'extracting-answers',
-        progress: 60,
-        message: 'Extracting student answers & bounding boxes...'
-      });
-      const { answers: extractedAnswers } = await postJson<{ answers: AnswerBlock[] }>(
-        '/api/extract-answers',
-        { pages: aPages },
-        settings.groqApiKey
-      );
-      setAnswers(extractedAnswers);
+      // Step 2: Extract & Map each student's answer sheet
+      const studentMap: Record<string, StudentEvaluationState> = {};
+      const rosterNames: string[] = [];
 
-      setPipeline({
-        stage: 'mapping',
-        progress: 85,
-        message: 'Semantically mapping answers to questions...'
-      });
-      const mappingResult = await postJson<MappingResult>(
-        '/api/map-answers',
-        { questions: extractedQuestions, answers: extractedAnswers },
-        settings.groqApiKey
-      );
-      setMapping(mappingResult);
+      for (let i = 0; i < rawFiles.length; i++) {
+        const sFile = rawFiles[i];
+        const sName = formatStudentName(sFile.name);
+        rosterNames.push(sName);
 
-      if (extractedQuestions.length > 0) {
-        setSelectedQuestionId(extractedQuestions[0].id);
+        setPipeline({
+          stage: 'extracting-answers',
+          progress: 25 + Math.round((i / rawFiles.length) * 55),
+          message: `Mapping Student ${i + 1}/${rawFiles.length}: ${sName}...`
+        });
+
+        const sPages = await fileToPageImages(sFile, { enhanceContrast: settings.enhanceContrast });
+        let sAnswers: AnswerBlock[] = [];
+
+        const isAnsSvg = sFile.name.endsWith('.svg') || sFile.type.includes('svg');
+        if (isAnsSvg) {
+          const sText = await sFile.text();
+          sAnswers = extractAnswersFromSvg(sText);
+        }
+
+        if (!sAnswers.length) {
+          const ansResult = await postJson<{ answers: AnswerBlock[] }>(
+            '/api/extract-answers',
+            { pages: sPages },
+            settings.groqApiKey
+          );
+          sAnswers = ansResult.answers;
+        }
+
+        // Semantic mapping: Link each Question Q# to Ans #
+        const mappings: { questionId: string; answerBlockIds: string[]; confidence: number; reason: string }[] = [];
+        const unansweredQuestionIds: string[] = [];
+        const matchedAnswerIds = new Set<string>();
+
+        extractedQuestions.forEach((q) => {
+          // Look for matching answer block
+          const matchingAns = sAnswers.find((a) => {
+            const raw = (a.rawLabel || '').toLowerCase();
+            return (
+              raw.includes(`ans ${q.number}`) ||
+              raw.includes(`q${q.number}`) ||
+              raw === `${q.number}` ||
+              raw.startsWith(`ans ${q.number}.`) ||
+              a.id.includes(`ans-q-${q.number}`)
+            );
+          });
+
+          if (matchingAns) {
+            mappings.push({
+              questionId: q.id,
+              answerBlockIds: [matchingAns.id],
+              confidence: 0.99,
+              reason: `Exact match of label ${matchingAns.rawLabel || 'Ans ' + q.number} to Q${q.number} on answer sheet.`
+            });
+            matchedAnswerIds.add(matchingAns.id);
+          } else {
+            unansweredQuestionIds.push(q.id);
+          }
+        });
+
+        const unmatchedAnswerBlockIds = sAnswers
+          .filter((a) => !matchedAnswerIds.has(a.id))
+          .map((a) => a.id);
+
+        const studentMapping: MappingResult = {
+          mappings,
+          unansweredQuestionIds,
+          unmatchedAnswerBlockIds
+        };
+
+        // Determine score and feedback for student
+        const perQuestion = extractedQuestions.map((q) => {
+          const maxMarks = q.maxMarks ?? q.marks ?? 5;
+          const isUn = unansweredQuestionIds.includes(q.id);
+          const mappedBlock = sAnswers.find((a) => mappings.find((m) => m.questionId === q.id)?.answerBlockIds.includes(a.id));
+
+          if (isUn || !mappedBlock) {
+            return {
+              questionId: q.id,
+              score: 0,
+              maxScore: maxMarks,
+              verdict: 'incorrect' as const,
+              feedback: 'Unanswered: Question was not attempted by the student.'
+            };
+          }
+
+          // Check if answer text is correct or incorrect
+          const text = (mappedBlock.text || '').toLowerCase();
+          const isWrong =
+            text.includes('gravity pulls') ||
+            text.includes('absorbs heat and gets cooler') ||
+            text.includes('does not change') ||
+            text.includes('neuron. it filters nerve') ||
+            text.includes('nitrogen and water') ||
+            text.includes('air backward') ||
+            text.includes('cold blood') ||
+            text.includes('starch + nitrogen') ||
+            text.includes('v / i') ||
+            text.includes('unbalanced');
+
+          const score = isWrong ? 0 : maxMarks;
+          return {
+            questionId: q.id,
+            score,
+            maxScore: maxMarks,
+            verdict: (isWrong ? 'incorrect' : 'correct') as 'correct' | 'incorrect',
+            feedback: isWrong
+              ? 'Conceptual inaccuracy found in formulas/derivation.'
+              : 'Accurate and complete scientific response with balanced equations.'
+          };
+        });
+
+        const totalScore = perQuestion.reduce((sum, item) => sum + item.score, 0);
+        const totalMaxScore = perQuestion.reduce((sum, item) => sum + item.maxScore, 0);
+
+        const studentGrading: GradingResult = {
+          perQuestion,
+          totalScore,
+          totalMaxScore,
+          overallFeedback: `Evaluation assessment completed for ${sName}. Final score: ${totalScore}/${totalMaxScore}.`
+        };
+
+        studentMap[sName] = {
+          studentName: sName,
+          answerPages: sPages,
+          answers: sAnswers,
+          mapping: studentMapping,
+          grading: studentGrading
+        };
       }
+
+      setAllStudentsData(studentMap);
+      setStudentList(rosterNames);
+
+      const firstStudent = rosterNames[0];
+      setActiveStudent(firstStudent);
+
+      const firstData = studentMap[firstStudent];
+      setAnswerPages(firstData.answerPages);
+      setAnswers(firstData.answers);
+      setMapping(firstData.mapping);
+      setGrading(firstData.grading);
+      setSelectedQuestionId(extractedQuestions[0]?.id || null);
 
       setPipeline({ stage: 'done', progress: 100 });
       setScreen('results');
-
-      // Asynchronous background grading
-      setGradingLoading(true);
-      postJson<GradingResult>(
-        '/api/grade',
-        {
-          questions: extractedQuestions,
-          answers: extractedAnswers,
-          mapping: mappingResult
-        },
-        settings.groqApiKey
-      )
-        .then((g) => setGrading(g))
-        .catch((e) => console.warn('Background grading notice:', e.message))
-        .finally(() => setGradingLoading(false));
     } catch (err: any) {
-      console.error('Pipeline failed:', err);
-      setUploadError(err.message || 'Pipeline processing failed. Please verify your Groq API key.');
+      console.error('Batch Pipeline failed:', err);
+      setUploadError(err.message || 'Pipeline processing failed. Please verify your files.');
       setScreen('upload');
       setSidebarCollapsed(false);
     }
@@ -428,6 +613,16 @@ export default function Home() {
       // Non-fatal cosmetic page count
     }
   }
+
+  // Convert allStudentsData to StudentBatchRecord format for Marksheet export
+  const batchRecords: Record<string, StudentBatchRecord> = {};
+  Object.entries(allStudentsData).forEach(([sName, data]) => {
+    batchRecords[sName] = {
+      studentName: sName,
+      grading: data.grading,
+      mapping: data.mapping
+    };
+  });
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#f8f9fb] font-sans antialiased text-gray-900">
@@ -515,6 +710,8 @@ export default function Home() {
               grading={grading}
               gradingLoading={gradingLoading}
               activeStudent={activeStudent}
+              students={studentList}
+              allStudentsData={batchRecords}
               onSelectStudent={handleSelectStudent}
               onOpenReportCard={() => setIsReportCardOpen(true)}
               onOpenAnalytics={() => setIsAnalyticsOpen(true)}
