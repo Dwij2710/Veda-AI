@@ -100,15 +100,16 @@ export default function GradingSummary({
     <div className="border-b border-gray-200/80 bg-white shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2.5">
         {/* Statistics Counts & Multi-Student Selector */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-gray-500 font-medium">
-          {/* Multi-Student Switcher */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5 text-xs text-gray-500 font-medium">
+          {/* Prominent Multi-Student Switcher Pill */}
           {onSelectStudent && (
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
-              <span className="text-gray-400">👨‍🎓</span>
+            <div className="flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-semibold text-orange-900 shadow-2xs">
+              <span className="text-sm">👨‍🎓</span>
+              <span className="text-[10px] uppercase font-bold text-orange-600 tracking-wider">Student:</span>
               <select
                 value={activeStudent}
                 onChange={(e) => onSelectStudent(e.target.value)}
-                className="bg-transparent text-xs font-bold text-gray-800 outline-none cursor-pointer"
+                className="bg-transparent text-xs font-bold text-gray-900 outline-none cursor-pointer pr-1"
               >
                 <option value="Student 1 (Aryan Sharma)">Student 1 (Aryan Sharma)</option>
                 <option value="Student 2 (Priya Verma)">Student 2 (Priya Verma)</option>

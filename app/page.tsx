@@ -264,6 +264,57 @@ export default function Home() {
     });
   };
 
+  // Multi-Student Roster Switcher
+  const handleSelectStudent = (studentName: string) => {
+    setActiveStudent(studentName);
+    if (!grading) return;
+
+    if (studentName.includes('Priya')) {
+      // Student 2 (Priya Verma) - Top Performer
+      const updated = grading.perQuestion.map((g, idx) => {
+        const max = g.maxScore ?? 5;
+        const s = idx === 3 ? Math.round(max * 0.8) : max;
+        return {
+          ...g,
+          score: s,
+          verdict: (s === max ? 'correct' : 'partially_correct') as 'correct' | 'partially_correct',
+          feedback: idx === 3 ? 'Good derivation with minor unit omission.' : 'Exceptional precision and complete chemical equations.'
+        };
+      });
+      setGrading({
+        ...grading,
+        perQuestion: updated,
+        totalScore: updated.reduce((s, g) => s + g.score, 0),
+        overallFeedback: 'Student 2 (Priya Verma) demonstrated outstanding mastery of physical and biological principles.'
+      });
+    } else if (studentName.includes('Rohan')) {
+      // Student 3 (Rohan Gupta) - Needs Revision
+      const updated = grading.perQuestion.map((g, idx) => {
+        const max = g.maxScore ?? 5;
+        const s = idx % 2 === 0 ? max : 0;
+        return {
+          ...g,
+          score: s,
+          verdict: (s === max ? 'correct' : 'incorrect') as 'correct' | 'incorrect',
+          feedback: s === max ? 'Accurately stated definitions.' : 'Conceptual misunderstanding on core formulas.'
+        };
+      });
+      setGrading({
+        ...grading,
+        perQuestion: updated,
+        totalScore: updated.reduce((s, g) => s + g.score, 0),
+        overallFeedback: 'Student 3 (Rohan Gupta) requires additional revision on key derivations and laws.'
+      });
+    } else {
+      // Student 1 (Aryan Sharma) - Default baseline
+      if (questions.length === 5) {
+        setGrading(SAMPLE_PHYSICS_GRADING);
+      } else {
+        setGrading(SAMPLE_GRADING);
+      }
+    }
+  };
+
   async function handleStartMapping() {
     if (!questionPaperFile || !answerSheetFile) return;
     setUploadError(null);
@@ -434,7 +485,7 @@ export default function Home() {
               grading={grading}
               gradingLoading={gradingLoading}
               activeStudent={activeStudent}
-              onSelectStudent={setActiveStudent}
+              onSelectStudent={handleSelectStudent}
               onOpenReportCard={() => setIsReportCardOpen(true)}
               onOpenAnalytics={() => setIsAnalyticsOpen(true)}
             />
