@@ -237,8 +237,8 @@ describe('UI Components Unit Tests', () => {
     it('renders TopBar with user profile and navigation', () => {
       render(<TopBar />);
       expect(screen.getByText('Exams')).toBeInTheDocument();
-      expect(screen.getByText('Madhur Rastogi')).toBeInTheDocument();
-      expect(screen.getByText('MR')).toBeInTheDocument();
+      expect(screen.getByText('Dwij Prajapati')).toBeInTheDocument();
+      expect(screen.getByText('DP')).toBeInTheDocument();
     });
   });
 
