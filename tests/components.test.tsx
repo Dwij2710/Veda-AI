@@ -34,7 +34,7 @@ describe('UI Components Unit Tests', () => {
 
       expect(screen.getByText(/Question Paper & Answer Sheets/i)).toBeInTheDocument();
       expect(screen.getByText('Question Paper')).toBeInTheDocument();
-      expect(screen.getByText('Answer Sheet')).toBeInTheDocument();
+      expect(screen.getByText(/Answer Sheets \(Batch Support\)/i)).toBeInTheDocument();
 
       const startButton = screen.getByRole('button', { name: /Start Mapping/i });
       expect(startButton).toBeDisabled();

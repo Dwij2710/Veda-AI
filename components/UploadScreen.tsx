@@ -2,20 +2,27 @@
 
 import { useRef, useState } from 'react';
 
+export interface UploadFileItem {
+  file: File;
+  pageCount: number | null;
+  studentName?: string;
+}
+
 interface UploadFileState {
   file: File | null;
   pageCount: number | null;
+  files?: UploadFileItem[];
 }
 
 interface Props {
   questionPaper: UploadFileState;
   answerSheet: UploadFileState;
   onSelectQuestionPaper: (file: File) => void;
-  onSelectAnswerSheet: (file: File) => void;
+  onSelectAnswerSheet: (files: File[]) => void;
   onClearQuestionPaper: () => void;
-  onClearAnswerSheet: () => void;
+  onClearAnswerSheet: (index?: number) => void;
   onStartMapping: () => void;
-  onLoadSampleExam: (type?: 'biology' | 'physics') => void;
+  onLoadSampleExam: (type?: 'biology' | 'physics' | 'batch') => void;
   onGenerateCustomExam?: (prompt: string) => void;
   error?: string | null;
 }
@@ -33,17 +40,18 @@ export default function UploadScreen({
   error
 }: Props) {
   const [customPrompt, setCustomPrompt] = useState('');
-  const canStart = !!questionPaper.file && !!answerSheet.file;
+  const hasAnswerSheets = (answerSheet.files && answerSheet.files.length > 0) || !!answerSheet.file;
+  const canStart = !!questionPaper.file && hasAnswerSheets;
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-4 sm:p-8 bg-[#fdfdfd] overflow-y-auto">
       <div className="w-full max-w-2xl text-center py-6">
         {/* Title */}
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">
-          Upload <span className="text-[#FF5722] font-black">Question Paper & Answer Sheets</span>
+          Upload <span className="text-[#FF5722] font-black">Question Paper &amp; Answer Sheets</span>
         </h1>
         <p className="mt-1 text-xs text-gray-500 font-medium">
-          Upload both files to get started
+          Upload 1 question paper and 1 or multiple student answer sheets for batch evaluation
         </p>
 
         {/* Central Teacher Graphic / Avatar */}
@@ -74,20 +82,24 @@ export default function UploadScreen({
 
         {/* Dual Upload Dropzone Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Question Paper Card */}
+          {/* Question Paper Card (Single File) */}
           <UploadCard
             label="Question Paper"
+            subtitle="Upload 1 Question Paper (PDF/Image)"
             state={questionPaper}
-            onSelect={onSelectQuestionPaper}
-            onClear={onClearQuestionPaper}
+            onSelect={(files) => files[0] && onSelectQuestionPaper(files[0])}
+            onClear={() => onClearQuestionPaper()}
+            allowMultiple={false}
           />
 
-          {/* Answer Sheet Card */}
+          {/* Answer Sheets Card (Single or Multi-Student Batch) */}
           <UploadCard
-            label="Answer Sheet"
+            label="Answer Sheets (Batch Support)"
+            subtitle="Upload 1 or Multiple Student Sheets"
             state={answerSheet}
             onSelect={onSelectAnswerSheet}
             onClear={onClearAnswerSheet}
+            allowMultiple={true}
           />
         </div>
 
@@ -114,7 +126,7 @@ export default function UploadScreen({
           </button>
 
           <p className="text-xs text-gray-400 font-medium">
-            Once both files are uploaded, you&apos;ll be able to map answers with questions
+            Once files are uploaded, you&apos;ll be able to map answers with questions across all students
           </p>
 
           {/* 1-Click Sample Exam Demo Buttons */}
@@ -134,7 +146,15 @@ export default function UploadScreen({
               className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition shadow-2xs cursor-pointer"
             >
               <span>⚡</span>
-              <span>5-Q Physics & Chem Exam (2 Correct, 2 Wrong, 1 Unanswered)</span>
+              <span>5-Q Physics Exam (2 Correct, 2 Wrong, 1 Blank)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onLoadSampleExam('batch')}
+              className="inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200 px-3.5 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition shadow-2xs cursor-pointer"
+            >
+              <span>👥</span>
+              <span>Batch Demo (3 Students: Aryan, Priya, Rohan)</span>
             </button>
           </div>
 
@@ -197,18 +217,78 @@ export default function UploadScreen({
 
 function UploadCard({
   label,
+  subtitle,
   state,
   onSelect,
-  onClear
+  onClear,
+  allowMultiple = false
 }: {
   label: string;
+  subtitle?: string;
   state: UploadFileState;
-  onSelect: (file: File) => void;
-  onClear: () => void;
+  onSelect: (files: File[]) => void;
+  onClear: (index?: number) => void;
+  allowMultiple?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Filled State matching Figma Screenshot
+  // Multi-file filled state
+  if (state.files && state.files.length > 0) {
+    return (
+      <div className="rounded-2xl border-2 border-dashed border-gray-200/80 bg-white/40 p-4 flex flex-col justify-between min-h-[170px]">
+        <div className="space-y-2 overflow-y-auto max-h-36 pr-1">
+          <div className="flex items-center justify-between text-xs font-bold text-gray-800 mb-1">
+            <span>👥 {state.files.length} Student Sheets Loaded</span>
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="text-[11px] text-orange-600 hover:underline cursor-pointer"
+            >
+              + Add More
+            </button>
+          </div>
+          {state.files.map((item, idx) => (
+            <div
+              key={idx}
+              className="relative flex items-center gap-2.5 rounded-xl bg-white p-2.5 shadow-2xs border border-gray-100 text-left"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-500 font-bold text-[10px] border border-red-100">
+                {item.file.type === 'application/pdf' ? 'PDF' : 'IMG'}
+              </div>
+              <div className="min-w-0 flex-1 pr-6">
+                <p className="truncate text-xs font-bold text-gray-900">{item.file.name}</p>
+                <p className="text-[10px] text-gray-400">
+                  {formatFileSize(item.file.size)}
+                  {item.pageCount ? ` • ${item.pageCount}p` : ''}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onClear(idx)}
+                className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-600 text-white text-[10px] font-bold hover:bg-black transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="application/pdf,image/*"
+          multiple={allowMultiple}
+          className="hidden"
+          onChange={(e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length > 0) onSelect(files);
+            e.target.value = '';
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Single file filled state
   if (state.file) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-gray-200/80 bg-white/40 p-5 flex items-center justify-center min-h-[170px]">
@@ -229,7 +309,7 @@ function UploadCard({
 
           {/* Remove Cross Button */}
           <button
-            onClick={onClear}
+            onClick={() => onClear()}
             className="absolute top-2.5 right-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 text-white text-[11px] font-bold hover:bg-black transition cursor-pointer"
             title={`Remove ${label}`}
           >
@@ -240,7 +320,7 @@ function UploadCard({
     );
   }
 
-  // Empty State matching Figma Screenshot
+  // Empty State
   return (
     <button
       onClick={() => inputRef.current?.click()}
@@ -250,10 +330,11 @@ function UploadCard({
         ref={inputRef}
         type="file"
         accept="application/pdf,image/*"
+        multiple={allowMultiple}
         className="hidden"
         onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) onSelect(f);
+          const files = Array.from(e.target.files || []);
+          if (files.length > 0) onSelect(files);
           e.target.value = '';
         }}
       />
@@ -270,7 +351,7 @@ function UploadCard({
       <p className="text-xs font-semibold text-gray-800">
         Upload <span className="text-[#FF5722]">{label}</span>
       </p>
-      <p className="text-[11px] font-medium text-gray-400">Max 10MB</p>
+      <p className="text-[11px] font-medium text-gray-400">{subtitle || 'Max 10MB per file'}</p>
     </button>
   );
 }

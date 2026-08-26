@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
-import UploadScreen from '@/components/UploadScreen';
+import UploadScreen, { UploadFileItem } from '@/components/UploadScreen';
 import LoadingState from '@/components/LoadingState';
 import QuestionList from '@/components/QuestionList';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
@@ -73,6 +73,7 @@ export default function Home() {
 
   const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
   const [answerSheetFile, setAnswerSheetFile] = useState<File | null>(null);
+  const [answerSheetFiles, setAnswerSheetFiles] = useState<UploadFileItem[]>([]);
   const [questionPaperPages, setQuestionPaperPages] = useState<number | null>(null);
   const [answerSheetPageCount, setAnswerSheetPageCount] = useState<number | null>(null);
 
@@ -116,12 +117,17 @@ export default function Home() {
   };
 
   // 1-Click Sample Exam Loader
-  const handleLoadSampleExam = (type: 'biology' | 'physics' = 'biology') => {
+  const handleLoadSampleExam = (type: 'biology' | 'physics' | 'batch' = 'biology') => {
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
     setMobileTab('questions');
-    const examLabel = type === 'physics' ? '5-Q Physics & Chem Exam' : 'Biology Unit Exam';
+    setActiveStudent('Aryan Sharma');
+
+    let examLabel = 'Biology Unit Exam';
+    if (type === 'physics') examLabel = '5-Q Physics & Chem Exam';
+    if (type === 'batch') examLabel = 'Batch Multi-Student Exam (3 Students)';
+
     setPipeline({ stage: 'rendering', progress: 20, message: `Loading ${examLabel}...` });
 
     setTimeout(() => {
@@ -142,7 +148,7 @@ export default function Home() {
             setAnswers(SAMPLE_ANSWERS);
             setMapping(SAMPLE_MAPPING);
             setGrading(SAMPLE_GRADING);
-            setSelectedQuestionId('q-2'); // Highlight Q2 chloroplast as in Figma mockup
+            setSelectedQuestionId('q-2');
           }
           setPipeline({ stage: 'done', progress: 100 });
           setScreen('results');
@@ -157,6 +163,7 @@ export default function Home() {
     setScreen('processing');
     setSidebarCollapsed(true);
     setMobileTab('questions');
+    setActiveStudent('Aryan Sharma');
     setPipeline({
       stage: 'extracting-questions',
       progress: 25,
@@ -285,7 +292,7 @@ export default function Home() {
         ...grading,
         perQuestion: updated,
         totalScore: updated.reduce((s, g) => s + g.score, 0),
-        overallFeedback: 'Student 2 (Priya Verma) demonstrated outstanding mastery of physical and biological principles.'
+        overallFeedback: 'Priya Verma demonstrated outstanding mastery of physical and biological principles.'
       });
     } else if (studentName.includes('Rohan')) {
       // Student 3 (Rohan Gupta) - Needs Revision
@@ -303,7 +310,7 @@ export default function Home() {
         ...grading,
         perQuestion: updated,
         totalScore: updated.reduce((s, g) => s + g.score, 0),
-        overallFeedback: 'Student 3 (Rohan Gupta) requires additional revision on key derivations and laws.'
+        overallFeedback: 'Rohan Gupta requires additional revision on key derivations and laws.'
       });
     } else {
       // Student 1 (Aryan Sharma) - Default baseline
@@ -316,7 +323,8 @@ export default function Home() {
   };
 
   async function handleStartMapping() {
-    if (!questionPaperFile || !answerSheetFile) return;
+    const mainAnswerFile = answerSheetFiles[0]?.file || answerSheetFile;
+    if (!questionPaperFile || !mainAnswerFile) return;
     setUploadError(null);
     setScreen('processing');
     setSidebarCollapsed(true);
@@ -326,7 +334,7 @@ export default function Home() {
       setPipeline({ stage: 'rendering', progress: 8, message: 'Rasterizing PDF & image pages...' });
       const [qPages, aPages] = await Promise.all([
         fileToPageImages(questionPaperFile, { enhanceContrast: settings.enhanceContrast }),
-        fileToPageImages(answerSheetFile, { enhanceContrast: settings.enhanceContrast })
+        fileToPageImages(mainAnswerFile, { enhanceContrast: settings.enhanceContrast })
       ]);
       setAnswerPages(aPages);
 
@@ -399,6 +407,7 @@ export default function Home() {
     setScreen('upload');
     setQuestionPaperFile(null);
     setAnswerSheetFile(null);
+    setAnswerSheetFiles([]);
     setQuestionPaperPages(null);
     setAnswerSheetPageCount(null);
     setQuestions([]);
@@ -446,24 +455,45 @@ export default function Home() {
         {screen === 'upload' && (
           <UploadScreen
             questionPaper={{ file: questionPaperFile, pageCount: questionPaperPages }}
-            answerSheet={{ file: answerSheetFile, pageCount: answerSheetPageCount }}
+            answerSheet={{
+              file: answerSheetFile,
+              pageCount: answerSheetPageCount,
+              files: answerSheetFiles
+            }}
             onSelectQuestionPaper={(f) => {
               setQuestionPaperFile(f);
               setQuestionPaperPages(null);
               countPages(f, setQuestionPaperPages);
             }}
-            onSelectAnswerSheet={(f) => {
-              setAnswerSheetFile(f);
-              setAnswerSheetPageCount(null);
-              countPages(f, setAnswerSheetPageCount);
+            onSelectAnswerSheet={(files) => {
+              if (files.length === 1) {
+                setAnswerSheetFile(files[0]);
+                setAnswerSheetFiles([]);
+                setAnswerSheetPageCount(null);
+                countPages(files[0], setAnswerSheetPageCount);
+              } else {
+                setAnswerSheetFile(files[0]);
+                const items: UploadFileItem[] = files.map((f) => ({
+                  file: f,
+                  pageCount: null
+                }));
+                setAnswerSheetFiles(items);
+              }
             }}
             onClearQuestionPaper={() => {
               setQuestionPaperFile(null);
               setQuestionPaperPages(null);
             }}
-            onClearAnswerSheet={() => {
-              setAnswerSheetFile(null);
-              setAnswerSheetPageCount(null);
+            onClearAnswerSheet={(index?: number) => {
+              if (index != null && answerSheetFiles.length > 0) {
+                const next = answerSheetFiles.filter((_, i) => i !== index);
+                setAnswerSheetFiles(next);
+                setAnswerSheetFile(next[0]?.file || null);
+              } else {
+                setAnswerSheetFile(null);
+                setAnswerSheetFiles([]);
+                setAnswerSheetPageCount(null);
+              }
             }}
             onStartMapping={handleStartMapping}
             onLoadSampleExam={handleLoadSampleExam}
