@@ -23,6 +23,18 @@ export async function fileToPageImages(
   file: File,
   options: RenderOptions = {}
 ): Promise<PageImage[]> {
+  if (file.name.endsWith('.svg') || file.type.includes('svg')) {
+    const text = await file.text();
+    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
+    return [
+      {
+        pageIndex: 0,
+        dataUrl,
+        width: 850,
+        height: 1700
+      }
+    ];
+  }
   if (file.type === 'application/pdf') {
     return pdfToPageImages(file, options);
   }
