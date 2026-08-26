@@ -143,6 +143,51 @@ export default function Home() {
     }, 400);
   };
 
+  // Natural Language Custom Exam Generator
+  const handleGenerateCustomExam = async (promptText: string) => {
+    setUploadError(null);
+    setScreen('processing');
+    setSidebarCollapsed(true);
+    setPipeline({
+      stage: 'extracting-questions',
+      progress: 25,
+      message: `Generating custom exam: "${promptText}"...`
+    });
+
+    try {
+      const result = await postJson<{
+        subject: string;
+        questions: ExtractedQuestion[];
+        answers: AnswerBlock[];
+        mapping: MappingResult;
+        grading: GradingResult;
+        answerPages: PageImage[];
+      }>('/api/generate-exam', { prompt: promptText }, settings.groqApiKey);
+
+      setPipeline({
+        stage: 'mapping',
+        progress: 75,
+        message: 'Rendering handwritten student answer sheet & bounding boxes...'
+      });
+
+      setTimeout(() => {
+        setAnswerPages(result.answerPages);
+        setQuestions(result.questions);
+        setAnswers(result.answers);
+        setMapping(result.mapping);
+        setGrading(result.grading);
+        setSelectedQuestionId(result.questions[0]?.id || null);
+        setPipeline({ stage: 'done', progress: 100 });
+        setScreen('results');
+      }, 400);
+    } catch (err: any) {
+      console.error('Custom exam generator error:', err);
+      setUploadError(err.message || 'Failed to generate custom exam. Please try again.');
+      setScreen('upload');
+      setSidebarCollapsed(false);
+    }
+  };
+
   async function handleStartMapping() {
     if (!questionPaperFile || !answerSheetFile) return;
     setUploadError(null);
@@ -294,6 +339,7 @@ export default function Home() {
             }}
             onStartMapping={handleStartMapping}
             onLoadSampleExam={handleLoadSampleExam}
+            onGenerateCustomExam={handleGenerateCustomExam}
             error={uploadError}
           />
         )}

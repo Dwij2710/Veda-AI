@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 interface UploadFileState {
   file: File | null;
@@ -16,6 +16,7 @@ interface Props {
   onClearAnswerSheet: () => void;
   onStartMapping: () => void;
   onLoadSampleExam: (type?: 'biology' | 'physics') => void;
+  onGenerateCustomExam?: (prompt: string) => void;
   error?: string | null;
 }
 
@@ -28,48 +29,51 @@ export default function UploadScreen({
   onClearAnswerSheet,
   onStartMapping,
   onLoadSampleExam,
+  onGenerateCustomExam,
   error
 }: Props) {
+  const [customPrompt, setCustomPrompt] = useState('');
   const canStart = !!questionPaper.file && !!answerSheet.file;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 overflow-y-auto bg-[#f8f9fb]">
-      <div className="w-full max-w-3xl text-center">
+    <div className="flex flex-1 flex-col items-center justify-center p-4 sm:p-8 bg-[#fdfdfd] overflow-y-auto">
+      <div className="w-full max-w-2xl text-center py-6">
         {/* Title */}
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl flex items-center justify-center flex-wrap gap-2">
-          <span>Upload</span>
-          <span className="inline-block rounded-xl bg-[#FFE4D6] px-3.5 py-1 text-[#FF5722]">
-            Question Paper &amp; Answer Sheets
-          </span>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">
+          Upload <span className="text-[#FF5722] font-black">Question Paper & Answer Sheets</span>
         </h1>
-        <p className="mt-3 text-sm font-medium text-gray-500">Upload both files to get started</p>
+        <p className="mt-1 text-xs text-gray-500 font-medium">
+          Upload both files to get started
+        </p>
 
-        {/* Central Teacher Illustration with Concentric Rings */}
-        <div className="relative mx-auto my-7 flex h-32 w-32 items-center justify-center">
-          {/* Concentric rings */}
-          <div className="absolute inset-0 rounded-full bg-[#FFE4D6]/40 animate-pulse" />
-          <div className="absolute inset-3 rounded-full bg-[#FFE4D6]/70" />
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6B35] to-[#FF8C42] shadow-md text-3xl">
-            👩‍🏫
-          </div>
+        {/* Central Teacher Graphic / Avatar */}
+        <div className="my-6 flex justify-center">
+          <div className="relative flex h-24 w-24 items-center justify-center">
+            {/* Concentric rings */}
+            <div className="absolute inset-0 rounded-full bg-orange-50/60 animate-ping opacity-25" />
+            <div className="absolute inset-1 rounded-full border border-orange-200/60" />
+            <div className="absolute inset-3 rounded-full bg-gradient-to-tr from-orange-400 to-amber-300 opacity-90 shadow-md flex items-center justify-center text-white text-3xl">
+              👩‍🏫
+            </div>
 
-          {/* Orbiting small badge icons */}
-          <div className="absolute -top-1 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF5722] text-[11px] text-white shadow-xs">
-            🕒
-          </div>
-          <div className="absolute -bottom-1 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF5722] text-[11px] text-white shadow-xs">
-            ⚙️
-          </div>
-          <div className="absolute top-10 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF5722] text-[11px] text-white shadow-xs">
-            📷
-          </div>
-          <div className="absolute top-10 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF5722] text-[11px] text-white shadow-xs">
-            ☁️
+            {/* Orbiting mini badges */}
+            <span className="absolute -top-1 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] text-white shadow">
+              ⏱
+            </span>
+            <span className="absolute bottom-0 -left-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-400 text-[10px] text-white shadow">
+              ⚙
+            </span>
+            <span className="absolute top-6 -left-3 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] text-white shadow">
+              📄
+            </span>
+            <span className="absolute top-6 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-orange-400 text-[10px] text-white shadow">
+              ☁
+            </span>
           </div>
         </div>
 
-        {/* Two Upload Cards Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-4 max-w-2xl mx-auto">
+        {/* Dual Upload Dropzone Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Question Paper Card */}
           <UploadCard
             label="Question Paper"
@@ -117,6 +121,7 @@ export default function UploadScreen({
           <div className="mt-2 pt-3 border-t border-gray-200/60 flex flex-wrap items-center justify-center gap-2">
             <span className="text-xs text-gray-400 font-medium">1-Click Test Demos:</span>
             <button
+              type="button"
               onClick={() => onLoadSampleExam('biology')}
               className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3.5 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 transition shadow-2xs cursor-pointer"
             >
@@ -124,6 +129,7 @@ export default function UploadScreen({
               <span>Biology Exam (14 Qs, Subparts)</span>
             </button>
             <button
+              type="button"
               onClick={() => onLoadSampleExam('physics')}
               className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition shadow-2xs cursor-pointer"
             >
@@ -131,6 +137,58 @@ export default function UploadScreen({
               <span>5-Q Physics & Chem Exam (2 Correct, 2 Wrong, 1 Unanswered)</span>
             </button>
           </div>
+
+          {/* AI Dynamic Natural Language Exam Generator */}
+          {onGenerateCustomExam && (
+            <div className="mt-3 pt-3 border-t border-gray-200/60 w-full max-w-xl text-center">
+              <p className="text-xs font-bold text-gray-800 flex items-center justify-center gap-1.5 mb-2">
+                <span className="text-orange-500">✨</span>
+                <span>Generate Custom Exam with AI Prompt</span>
+              </p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (customPrompt.trim()) onGenerateCustomExam(customPrompt.trim());
+                }}
+                className="flex items-center gap-2 rounded-2xl bg-white border border-gray-200 p-1.5 shadow-sm focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100"
+              >
+                <input
+                  type="text"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder='e.g. "Science paper with 7 questions with 3 answered and 4 unanswered"'
+                  className="flex-1 px-3 py-1.5 text-xs text-gray-800 placeholder-gray-400 outline-none bg-transparent"
+                />
+                <button
+                  type="submit"
+                  disabled={!customPrompt.trim()}
+                  className="inline-flex items-center gap-1 rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
+                >
+                  <span>Generate &amp; Map</span>
+                  <span>✦</span>
+                </button>
+              </form>
+
+              {/* Quick Suggestion Chips */}
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-gray-500">
+                <span className="text-gray-400">Suggestions:</span>
+                <button
+                  type="button"
+                  onClick={() => setCustomPrompt('Science paper with 7 questions with 3 answered and 4 unanswered')}
+                  className="rounded-full bg-gray-100 px-2.5 py-0.5 hover:bg-orange-50 hover:text-orange-600 transition cursor-pointer"
+                >
+                  &ldquo;7 Qs (3 answered, 4 unanswered)&rdquo;
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomPrompt('Math calculus exam with 6 questions, 4 correct and 2 incorrect')}
+                  className="rounded-full bg-gray-100 px-2.5 py-0.5 hover:bg-orange-50 hover:text-orange-600 transition cursor-pointer"
+                >
+                  &ldquo;Math (4 correct, 2 incorrect)&rdquo;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -172,7 +230,7 @@ function UploadCard({
           {/* Remove Cross Button */}
           <button
             onClick={onClear}
-            className="absolute top-2.5 right-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 text-white text-[11px] font-bold hover:bg-black transition"
+            className="absolute top-2.5 right-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 text-white text-[11px] font-bold hover:bg-black transition cursor-pointer"
             title={`Remove ${label}`}
           >
             ✕
@@ -186,7 +244,7 @@ function UploadCard({
   return (
     <button
       onClick={() => inputRef.current?.click()}
-      className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed border-gray-200 bg-white/50 p-7 text-center transition hover:border-orange-300 hover:bg-white min-h-[170px]"
+      className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed border-gray-200 bg-white/50 p-7 text-center transition hover:border-orange-300 hover:bg-white min-h-[170px] cursor-pointer"
     >
       <input
         ref={inputRef}
